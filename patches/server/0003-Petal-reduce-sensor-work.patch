@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sat, 1 Apr 2023 14:33:40 +0800
+Subject: [PATCH] Petal reduce sensor work
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
+index 88e2d818264450e63e0f5693fdc7940d072e50a6..f828088d8c16d5a84b94c3a0aabe51b77020cd87 100644
+--- a/src/main/java/net/minecraft/world/entity/Mob.java
++++ b/src/main/java/net/minecraft/world/entity/Mob.java
+@@ -915,10 +915,11 @@ public abstract class Mob extends LivingEntity implements Targeting {
+             return;
+         }
+         // Paper end
++        int i = this.level.getServer().getTickCount() + this.getId(); // petal - move up
++
+         this.level.getProfiler().push("sensing");
+-        this.sensing.tick();
++        if (i % 10 == 0) this.sensing.tick(); // petal - only refresh line of sight cache every half second
+         this.level.getProfiler().pop();
+-        int i = this.level.getServer().getTickCount() + this.getId();
+ 
+         if (i % 2 != 0 && this.tickCount > 1) {
+             this.level.getProfiler().push("targetSelector");
