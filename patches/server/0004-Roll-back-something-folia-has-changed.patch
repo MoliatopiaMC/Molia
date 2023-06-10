@@ -1,0 +1,214 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sat, 10 Jun 2023 14:41:40 +0800
+Subject: [PATCH] Roll back something folia has changed
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/provider/type/paper/PaperPluginProviderFactory.java b/src/main/java/io/papermc/paper/plugin/provider/type/paper/PaperPluginProviderFactory.java
+index dc81e1a9faa54ba677bede6d7ca2414b1d7b6003..74111dea89d69ec58cb7c71f0cfff4aa6101e8ed 100644
+--- a/src/main/java/io/papermc/paper/plugin/provider/type/paper/PaperPluginProviderFactory.java
++++ b/src/main/java/io/papermc/paper/plugin/provider/type/paper/PaperPluginProviderFactory.java
+@@ -24,11 +24,13 @@ class PaperPluginProviderFactory implements PluginTypeFactory<PaperPluginParent,
+ 
+     @Override
+     public PaperPluginParent build(JarFile file, PaperPluginMeta configuration, Path source) throws Exception {
+-        // Folia start - block plugins not marked as supported
++        //Molia start -- do not check it
++        /*// Folia start - block plugins not marked as supported
+         if (!configuration.isFoliaSupported()) {
+             throw new RuntimeException("Could not load plugin '" + configuration.getDisplayName() + "' as it is not marked as supporting Folia!");
+         }
+-        // Folia end - block plugins not marked as supported
++        // Folia end - block plugins not marked as supported*/
++        //Molia end
+         Logger jul = PaperPluginLogger.getLogger(configuration);
+         ComponentLogger logger = ComponentLogger.logger(jul.getName());
+         PluginProviderContext context = PluginProviderContextImpl.of(configuration, logger, source);
+diff --git a/src/main/java/io/papermc/paper/plugin/provider/type/spigot/SpigotPluginProviderFactory.java b/src/main/java/io/papermc/paper/plugin/provider/type/spigot/SpigotPluginProviderFactory.java
+index ad13d60eeb94a75c97b3d0696c39d834d6082bfa..bc94218722c692fe4624f4faf5844978133a481f 100644
+--- a/src/main/java/io/papermc/paper/plugin/provider/type/spigot/SpigotPluginProviderFactory.java
++++ b/src/main/java/io/papermc/paper/plugin/provider/type/spigot/SpigotPluginProviderFactory.java
+@@ -17,11 +17,14 @@ class SpigotPluginProviderFactory implements PluginTypeFactory<SpigotPluginProvi
+ 
+     @Override
+     public SpigotPluginProvider build(JarFile file, PluginDescriptionFile configuration, Path source) throws Exception {
+-        // Folia start - block plugins not marked as supported
++        //Molia start -- do not check that
++        /*// Folia start - block plugins not marked as supported
+         if (!configuration.isFoliaSupported()) {
+             throw new RuntimeException("Could not load plugin '" + configuration.getDisplayName() + "' as it is not marked as supporting Folia!");
+         }
+-        // Folia end - block plugins not marked as supported
++        // Folia end - block plugins not marked as supported*/
++
++        //Molia end
+         // Copied from SimplePluginManager#loadPlugins
+         // Spigot doesn't validate the name when the config is created, and instead when the plugin is loaded.
+         // Paper plugin configuration will do these checks in config serializer instead of when this is created.
+diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
+index 9136fb30db749737e9f189d0901024fcad02e402..e28ee24887f765ca006d9e17cd635887976e57d3 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
++++ b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
+@@ -48,7 +48,7 @@ import org.bukkit.scheduler.BukkitWorker;
+  */
+ public class CraftScheduler implements BukkitScheduler {
+ 
+-    static Plugin MINECRAFT = new MinecraftInternalPlugin();
++    public static Plugin MINECRAFT = new MinecraftInternalPlugin();
+     /**
+      * The start ID for the counter.
+      */
+@@ -533,7 +533,7 @@ public class CraftScheduler implements BukkitScheduler {
+     }
+ 
+     protected CraftTask handle(final CraftTask task, final long delay) { // Paper
+-        if (true) throw new UnsupportedOperationException(); // Folia - region threading
++        //if (true) throw new UnsupportedOperationException(); // Folia - region threading //Molia do not care it
+         // Paper start
+         if (!this.isAsyncScheduler && !task.isSync()) {
+             this.asyncScheduler.handle(task, delay);
+diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
+index 4ccdcdc78c86a698d555b6dc53bbd8668ca41d39..fe57437155ff9471738d3b85e787350601b79584 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
++++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
+@@ -44,7 +44,6 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
+     }
+     @Override
+     public CraftObjective registerNewObjective(String name, Criteria criteria, net.kyori.adventure.text.Component displayName, RenderType renderType) throws IllegalArgumentException {
+-        if (true) throw new UnsupportedOperationException(); // Folia - not supported yet
+         if (displayName == null) {
+             displayName = net.kyori.adventure.text.Component.empty();
+         }
+@@ -213,7 +212,6 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
+ 
+     @Override
+     public Team registerNewTeam(String name) throws IllegalArgumentException {
+-        if (true) throw new UnsupportedOperationException(); // Folia - not supported yet
+         Validate.notNull(name, "Team name cannot be null");
+         Validate.isTrue(name.length() <= Short.MAX_VALUE, "Team name '" + name + "' is longer than the limit of 32767 characters");
+         Validate.isTrue(this.board.getPlayerTeam(name) == null, "Team name '" + name + "' is already in use");
+@@ -241,7 +239,6 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
+ 
+     @Override
+     public void clearSlot(DisplaySlot slot) throws IllegalArgumentException {
+-        if (true) throw new UnsupportedOperationException(); // Folia - not supported yet
+         Validate.notNull(slot, "Slot cannot be null");
+         this.board.setDisplayObjective(CraftScoreboardTranslations.fromBukkitSlot(slot), null);
+     }
+diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
+index 071289fe33f444b903b61d6ec34c9ca4873c9ac5..985958f623a189f729a43a320640f28ae576c44e 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
++++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
+@@ -18,6 +18,7 @@ import net.minecraft.world.scores.Scoreboard;
+ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
+ import org.apache.commons.lang.Validate;
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
++import org.bukkit.craftbukkit.scheduler.CraftScheduler;
+ import org.bukkit.craftbukkit.util.WeakCollection;
+ import org.bukkit.entity.Player;
+ import org.bukkit.scoreboard.ScoreboardManager;
+@@ -42,8 +43,7 @@ public final class CraftScoreboardManager implements ScoreboardManager {
+ 
+     @Override
+     public CraftScoreboard getNewScoreboard() {
+-        if (true) throw new UnsupportedOperationException(); // Folia - not supported yet
+-        org.spigotmc.AsyncCatcher.catchOp("scoreboard creation"); // Spigot
++        //org.spigotmc.AsyncCatcher.catchOp("scoreboard creation"); // Spigot
+         CraftScoreboard scoreboard = new CraftScoreboard(new ServerScoreboard(this.server));
+         // Paper start
+         if (io.papermc.paper.configuration.GlobalConfiguration.get().scoreboards.trackPluginScoreboards) {
+@@ -69,43 +69,44 @@ public final class CraftScoreboardManager implements ScoreboardManager {
+ 
+     // CraftBukkit method
+     public void setPlayerBoard(CraftPlayer player, org.bukkit.scoreboard.Scoreboard bukkitScoreboard) throws IllegalArgumentException {
+-        if (true) throw new UnsupportedOperationException(); // Folia - not supported yet
+-        Validate.isTrue(bukkitScoreboard instanceof CraftScoreboard, "Cannot set player scoreboard to an unregistered Scoreboard");
++        player.getScheduler().run(CraftScheduler.MINECRAFT,(a)->{
++            Validate.isTrue(bukkitScoreboard instanceof CraftScoreboard, "Cannot set player scoreboard to an unregistered Scoreboard");
+ 
+-        CraftScoreboard scoreboard = (CraftScoreboard) bukkitScoreboard;
+-        net.minecraft.world.scores.Scoreboard oldboard = this.getPlayerBoard(player).getHandle();
+-        net.minecraft.world.scores.Scoreboard newboard = scoreboard.getHandle();
+-        ServerPlayer entityplayer = player.getHandle();
++            CraftScoreboard scoreboard = (CraftScoreboard) bukkitScoreboard;
++            net.minecraft.world.scores.Scoreboard oldboard = this.getPlayerBoard(player).getHandle();
++            net.minecraft.world.scores.Scoreboard newboard = scoreboard.getHandle();
++            ServerPlayer entityplayer = player.getHandle();
+ 
+-        if (oldboard == newboard) {
+-            return;
+-        }
++            if (oldboard == newboard) {
++                return;
++            }
+ 
+-        if (scoreboard == this.mainScoreboard) {
+-            this.playerBoards.remove(player);
+-        } else {
+-            this.playerBoards.put(player, scoreboard);
+-        }
++            if (scoreboard == this.mainScoreboard) {
++                this.playerBoards.remove(player);
++            } else {
++                this.playerBoards.put(player, scoreboard);
++            }
+ 
+-        // Old objective tracking
+-        HashSet<Objective> removed = new HashSet<>();
+-        for (int i = 0; i < 3; ++i) {
+-            Objective scoreboardobjective = oldboard.getDisplayObjective(i);
+-            if (scoreboardobjective != null && !removed.contains(scoreboardobjective)) {
+-                entityplayer.connection.send(new ClientboundSetObjectivePacket(scoreboardobjective, 1));
+-                removed.add(scoreboardobjective);
++            // Old objective tracking
++            HashSet<Objective> removed = new HashSet<>();
++            for (int i = 0; i < 3; ++i) {
++                Objective scoreboardobjective = oldboard.getDisplayObjective(i);
++                if (scoreboardobjective != null && !removed.contains(scoreboardobjective)) {
++                    entityplayer.connection.send(new ClientboundSetObjectivePacket(scoreboardobjective, 1));
++                    removed.add(scoreboardobjective);
++                }
+             }
+-        }
+ 
+-        // Old team tracking
+-        Iterator<?> iterator = oldboard.getPlayerTeams().iterator();
+-        while (iterator.hasNext()) {
+-            PlayerTeam scoreboardteam = (PlayerTeam) iterator.next();
+-            entityplayer.connection.send(ClientboundSetPlayerTeamPacket.createRemovePacket(scoreboardteam));
+-        }
++            // Old team tracking
++            Iterator<?> iterator = oldboard.getPlayerTeams().iterator();
++            while (iterator.hasNext()) {
++                PlayerTeam scoreboardteam = (PlayerTeam) iterator.next();
++                entityplayer.connection.send(ClientboundSetPlayerTeamPacket.createRemovePacket(scoreboardteam));
++            }
+ 
+-        // The above is the reverse of the below method.
+-        this.server.getPlayerList().updateEntireScoreboard((ServerScoreboard) newboard, player.getHandle());
++            // The above is the reverse of the below method.
++            this.server.getPlayerList().updateEntireScoreboard((ServerScoreboard) newboard, player.getHandle());
++        },()->{});
+     }
+ 
+     // CraftBukkit method
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+index 9f5e8a21de3785721897cf8cf75b17ce3968cb7e..86acc792cf8f33be350c56c4867b27eca8efbfd3 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+@@ -373,11 +373,13 @@ public final class CraftMagicNumbers implements UnsafeValues {
+         String minimumVersion = MinecraftServer.getServer().server.minimumAPI;
+         int minimumIndex = CraftMagicNumbers.SUPPORTED_API.indexOf(minimumVersion);
+ 
+-        // Folia start - block plugins not marked as supported
++        //Molia start - do not check that
++        /* // Folia start - block plugins not marked as supported
+         if (!pdf.isFoliaSupported()) {
+             throw new InvalidPluginException("Plugin " + pdf.getFullName() + " is not marked as supporting regionised multithreading");
+         }
+-        // Folia end - block plugins not marked as supported
++        // Folia end - block plugins not marked as supported*/
++        //Molia end
+ 
+         if (pdf.getAPIVersion() != null) {
+             int pluginIndex = CraftMagicNumbers.SUPPORTED_API.indexOf(pdf.getAPIVersion());

@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sat, 10 Jun 2023 14:42:05 +0800
+Subject: [PATCH] Do not send chunk if it was already sent
+
+
+diff --git a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+index d52a522fe6d5c4375862691fa32450bc458ca38b..406d4fc7d83f6ce160dba34505ef696a1ddf652d 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
++++ b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+@@ -481,12 +481,18 @@ public class RegionizedPlayerChunkLoader {
+         }
+ 
+         private void sendChunk(final int chunkX, final int chunkZ) {
++            //Molia start
++            if (this.sentChunks.contains(CoordinateUtils.getChunkKey(chunkX, chunkZ))){
++                return;
++            }
++            //Molia end
++
+             if (this.sentChunks.add(CoordinateUtils.getChunkKey(chunkX, chunkZ))) {
+                 this.world.getChunkSource().chunkMap.updateChunkTracking(this.player,
+                     new ChunkPos(chunkX, chunkZ), new MutableObject<>(), false, true); // unloaded, loaded
+                 return;
+             }
+-            throw new IllegalStateException();
++            //throw new IllegalStateException(); //Molia
+         }
+ 
+         private void sendUnloadChunk(final int chunkX, final int chunkZ) {
