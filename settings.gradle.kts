@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "molia"
+rootProject.name = "Molia"
 for (name in listOf("Molia-API", "Molia-Server")) {
     val projName = name.toLowerCase(Locale.ENGLISH)
     include(projName)
