@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 11 Jun 2023 12:59:19 +0800
+Subject: [PATCH] Make split range smaller
+
+
+diff --git a/src/main/java/io/papermc/paper/threadedregions/TickRegions.java b/src/main/java/io/papermc/paper/threadedregions/TickRegions.java
+index 6c76c70574642aa4f3a8fce74e4608781ce132ec..54ab3a9c2b01794f129548464f3d858105095541 100644
+--- a/src/main/java/io/papermc/paper/threadedregions/TickRegions.java
++++ b/src/main/java/io/papermc/paper/threadedregions/TickRegions.java
+@@ -24,7 +24,7 @@ public final class TickRegions implements ThreadedRegionizer.RegionCallbacks<Tic
+     private static final Logger LOGGER = LogUtils.getLogger();
+ 
+     public static int getRegionChunkShift() {
+-        return 4;
++        return 2;
+     }
+ 
+     private static boolean initialised;
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index acc8af33ad8534d812908b0feb9a1963ee2c64fb..3a10507ab4fd324264eee8276b55eadd77b569af 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -543,7 +543,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+     public final io.papermc.paper.threadedregions.ThreadedRegionizer<io.papermc.paper.threadedregions.TickRegions.TickRegionData, io.papermc.paper.threadedregions.TickRegions.TickRegionSectionData> regioniser;
+     {
+         this.regioniser = new io.papermc.paper.threadedregions.ThreadedRegionizer<>(
+-            3*9,
++            3*3,
+             (2.0 / 3.0),
+             1,
+             1,
