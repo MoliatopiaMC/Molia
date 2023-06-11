@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 11 Jun 2023 15:48:05 +0800
+Subject: [PATCH] Gale - Reduce-entity-allocations
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 08e61a8940c142c68ed93359084ea46c7fd52310..192a9c4ace4d43e60fe46480bcdc091fc2cd959d 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -427,6 +427,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+         return this.originWorld;
+     }
+     // Paper end
++
+     public float getBukkitYaw() {
+         return this.yRot;
+     }
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index 49716190b784339b80c8a3ac8e5b13bc450284ee..2e7d6b2431d39d613659093882b8a78a18fd8597 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -397,7 +397,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
+             boolean flag = this instanceof net.minecraft.world.entity.player.Player;
+ 
+             if (!this.level.isClientSide) {
+-                if (this.isInWall()) {
++                // Gale start - Pufferfish - reduce in wall checks
++                long checkStuckInWallInterval = 10;
++                if ((checkStuckInWallInterval <= 1 || (tickCount % checkStuckInWallInterval == 0 && couldPossiblyBeHurt(1.0F))) && this.isInWall()) {
++                    // Gale end - Pufferfish - reduce in wall checks
+                     this.hurt(this.damageSources().inWall(), 1.0F);
+                 } else if (flag && !this.level.getWorldBorder().isWithinBounds(this.getBoundingBox())) {
+                     double d0 = this.level.getWorldBorder().getDistanceToBorder(this) + this.level.getWorldBorder().getDamageSafeZone();
+@@ -1324,6 +1327,15 @@ public abstract class LivingEntity extends Entity implements Attackable {
+         return this.getHealth() <= 0.0F;
+     }
+ 
++    // Gale start - Pufferfish - reduce in wall checks
++    public boolean couldPossiblyBeHurt(float amount) {
++        if ((float) this.invulnerableTime > (float) this.invulnerableDuration / 2.0F && amount <= this.lastHurt) {
++            return false;
++        }
++        return true;
++    }
++    // Gale end - Pufferfish - reduce in wall checks
++
+     @Override
+     public boolean hurt(DamageSource source, float amount) {
+         if (this.isInvulnerableTo(source)) {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+index dd1102d5291ef6f18e82400a6d8a0a376cc071e9..d1602af2d6e5d4dd8d8b44ab66bca39c60195093 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
++++ b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+@@ -23,9 +23,11 @@ public class AttributeMap {
+     private final Map<Attribute, AttributeInstance> attributes = Maps.newHashMap();
+     private final Set<AttributeInstance> dirtyAttributes = Sets.newHashSet();
+     private final AttributeSupplier supplier;
++    private final java.util.function.Function<Attribute, AttributeInstance> createInstance; // Gale - Airplane - reduce entity allocations
+ 
+     public AttributeMap(AttributeSupplier defaultAttributes) {
+         this.supplier = defaultAttributes;
++        this.createInstance = attribute -> this.supplier.createInstance(this::onAttributeModified, attribute); // Gale - Airplane - reduce entity allocations
+     }
+ 
+     private void onAttributeModified(AttributeInstance instance) {
+@@ -45,11 +47,10 @@ public class AttributeMap {
+         }).collect(Collectors.toList());
+     }
+ 
++
+     @Nullable
+     public AttributeInstance getInstance(Attribute attribute) {
+-        return this.attributes.computeIfAbsent(attribute, (attributex) -> {
+-            return this.supplier.createInstance(this::onAttributeModified, attributex);
+-        });
++        return this.attributes.computeIfAbsent(attribute, this.createInstance); // Gale - Airplane - reduce entity allocations - cache lambda, as for some reason java allocates it anyways
+     }
+ 
+     @Nullable
