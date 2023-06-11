@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 11 Jun 2023 18:21:32 +0800
+Subject: [PATCH] Fix compile error in Data storage optimization
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/sensing/SecondaryPoiSensor.java b/src/main/java/net/minecraft/world/entity/ai/sensing/SecondaryPoiSensor.java
+index 53b0519bbc5d52490040eaf0fe449648f021d0c2..6a5590a4258575c9191c0f0ca870fcddfec53cfb 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/sensing/SecondaryPoiSensor.java
++++ b/src/main/java/net/minecraft/world/entity/ai/sensing/SecondaryPoiSensor.java
+@@ -26,7 +26,7 @@ public class SecondaryPoiSensor extends Sensor<Villager> {
+     protected void doTick(ServerLevel world, Villager entity) {
+         // Gale start - Lithium - skip secondary POI sensor if absent
+         var secondaryPoi = entity.getVillagerData().getProfession().secondaryPoi();
+-        if (secondaryPoi == null) { // Gale - optimize villager data storage
++        if (secondaryPoi == null || secondaryPoi.isEmpty()) { // Gale - optimize villager data storage
+             entity.getBrain().eraseMemory(MemoryModuleType.SECONDARY_JOB_SITE);
+             return;
+         }
+@@ -41,7 +41,7 @@ public class SecondaryPoiSensor extends Sensor<Villager> {
+                 for(int l = -4; l <= 4; ++l) {
+                     BlockPos blockPos2 = blockPos.offset(j, k, l);
+                     // Gale start - optimize villager data storage
+-                    if (secondaryPoi == world.getBlockState(blockPos2).getBlock()) {
++                    if (secondaryPoi.contains(world.getBlockState(blockPos2).getBlock())) {
+                         if (list == null) {
+                             list = Lists.newArrayList();
+                         }
