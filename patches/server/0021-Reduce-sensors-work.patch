@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Mon, 12 Jun 2023 19:18:44 +0800
+Subject: [PATCH] Reduce sensors work
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
+index 8ea463720fde25954c208d1e91571f1494d24aea..25dc947d449a7b93a305b5c70d76c32987b815a8 100644
+--- a/src/main/java/net/minecraft/world/entity/Mob.java
++++ b/src/main/java/net/minecraft/world/entity/Mob.java
+@@ -915,10 +915,13 @@ public abstract class Mob extends LivingEntity implements Targeting {
+             return;
+         }
+         // Paper end
+-        this.level.getProfiler().push("sensing");
+-        this.sensing.tick();
+-        this.level.getProfiler().pop();
+-        int i = this.tickCount + this.getId(); // Folia - region threading
++        int i = this.tickCount + this.getId(); // Folia - region threading //Molia --move up
++
++        if (i % 10 == 0){ //Molia -- reduce sensor work
++            this.level.getProfiler().push("sensing");
++            this.sensing.tick();
++            this.level.getProfiler().pop();
++        }
+ 
+         if (i % 2 != 0 && this.tickCount > 1) {
+             this.level.getProfiler().push("targetSelector");
