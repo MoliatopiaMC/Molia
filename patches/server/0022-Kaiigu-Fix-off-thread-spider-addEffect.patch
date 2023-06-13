@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Tue, 13 Jun 2023 19:15:39 +0800
+Subject: [PATCH] Kaiigu Fix off thread spider addEffect
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Spider.java b/src/main/java/net/minecraft/world/entity/monster/Spider.java
+index 0c36bb47bd7040f1544817810e1c87157cdaff96..089c7bc00b8b4354d795cd864dc2c310bcf6de86 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Spider.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Spider.java
+@@ -180,7 +180,9 @@ public class Spider extends Monster {
+             MobEffect mobeffectlist = entityspider_groupdataspider.effect;
+ 
+             if (mobeffectlist != null) {
++                this.getBukkitEntity().taskScheduler.schedule(task -> { // Kaiiju - Fix off thread spider add effect
+                 this.addEffect(new MobEffectInstance(mobeffectlist, -1), org.bukkit.event.entity.EntityPotionEffectEvent.Cause.SPIDER_SPAWN); // CraftBukkit
++                }, null, 1); // Kaiiju - Fix off thread spider add effect
+             }
+         }
+ 
