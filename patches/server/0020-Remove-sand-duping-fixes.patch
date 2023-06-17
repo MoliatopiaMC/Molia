@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Sat, 17 Jun 2023 08:29:54 +0800
+Subject: [PATCH] Remove sand duping fixes
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index 6e35afb9e5314de69e78d819913418ab144bec52..ed9bba9ce885dc258d7ce4edeccd8acf967120bd 100644
+--- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -130,11 +130,13 @@ public class FallingBlockEntity extends Entity {
+ 
+     @Override
+     public void tick() {
+-        // Paper start - fix sand duping
++        //Molia start - we don't need this
++        /*// Paper start - fix sand duping
+         if (this.isRemoved()) {
+             return;
+         }
+-        // Paper end - fix sand duping
++        // Paper end - fix sand duping*/
++        //Molia end
+         if (this.blockState.isAir()) {
+             this.discard();
+         } else {
+@@ -147,11 +149,13 @@ public class FallingBlockEntity extends Entity {
+ 
+             this.move(MoverType.SELF, this.getDeltaMovement());
+ 
+-            // Paper start - fix sand duping
++            //Molia start - we don't need this
++            /*// Paper start - fix sand duping
+             if (this.isRemoved()) {
+                 return;
+             }
+-            // Paper end - fix sand duping
++            // Paper end - fix sand duping*/
++            //Molia end
+ 
+             // Paper start - Configurable EntityFallingBlock height nerf
+             if (this.level().paperConfig().fixes.fallingBlockHeightNerf.test(v -> this.getY() > v)) {

@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Sat, 17 Jun 2023 08:30:07 +0800
+Subject: [PATCH] Gale Cache on climbable check
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index f2dfa71100eb90775b4f9459f344d1ddeb3c2fd8..448fc5bbdd75c30b5c82ee3b1d74521b49944341 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -145,7 +145,6 @@ import org.bukkit.event.entity.EntityTeleportEvent;
+ import org.bukkit.event.player.PlayerItemConsumeEvent;
+ // CraftBukkit end
+ 
+-import co.aikar.timings.MinecraftTimings; // Paper
+ 
+ public abstract class LivingEntity extends Entity implements Attackable {
+ 
+@@ -1991,6 +1990,20 @@ public abstract class LivingEntity extends Entity implements Attackable {
+         return this.lastClimbablePos;
+     }
+ 
++
++    // Gale start - Airplane - cache on climbable check
++    private boolean cachedOnClimbable = false;
++    private BlockPos lastClimbingPosition = null;
++
++    public boolean onClimbableCached() {
++        if (!this.blockPosition().equals(this.lastClimbingPosition)) {
++            this.cachedOnClimbable = this.onClimbable();
++            this.lastClimbingPosition = this.blockPosition();
++        }
++        return this.cachedOnClimbable;
++    }
++    // Gale end - Airplane - cache on climbable check
++
+     public boolean onClimbable() {
+         if (this.isSpectator()) {
+             return false;
+diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
+index 6240354c4f03f03ebcccfe0e52d721427a6549c5..34683accdc4bd3a3c7c07d829d060871a6085618 100644
+--- a/src/main/java/org/spigotmc/ActivationRange.java
++++ b/src/main/java/org/spigotmc/ActivationRange.java
+@@ -308,7 +308,7 @@ public class ActivationRange
+         if ( entity instanceof LivingEntity )
+         {
+             LivingEntity living = (LivingEntity) entity;
+-            if ( living.onClimbable() || living.jumping || living.hurtTime > 0 || living.activeEffects.size() > 0 ) // Paper
++            if ( living.onClimbableCached() || living.jumping || living.hurtTime > 0 || living.activeEffects.size() > 0 ) // Paper // Gale - Airplane - cache on climbable check - use cached
+             {
+                 return 1; // Paper
+             }
