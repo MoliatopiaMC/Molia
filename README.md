@@ -8,7 +8,7 @@
 - Micro-optimizations
 - Variable entity wake-up
 - Bukkit plugins support(May cause some problems)(unsafe)
-- 
+  
 ## Downloads
 
 Downloads can be obtained in the [Releases](https://github.com/Molia/Molia/releases)
