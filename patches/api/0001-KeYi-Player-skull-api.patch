@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Thu, 22 Jun 2023 10:18:43 +0800
+Subject: [PATCH] KeYi Player skull api
+
+
+diff --git a/src/main/java/org/bukkit/entity/Player.java b/src/main/java/org/bukkit/entity/Player.java
+index 06f00d016f1e46edb8f4fe0c14eb8b364900c3ef..c798d5f20dfe32467eed2e3f5356a56f95ce8a46 100644
+--- a/src/main/java/org/bukkit/entity/Player.java
++++ b/src/main/java/org/bukkit/entity/Player.java
+@@ -1,5 +1,7 @@
+ package org.bukkit.entity;
+ 
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.Future;
+ import java.net.InetSocketAddress;
+ import java.util.Collection;
+ import java.util.Map;
+@@ -3117,4 +3119,22 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+     @Override
+     Spigot spigot();
+     // Spigot end
++
++    // KeYi start
++    /**
++     * Get a skull item of a player.
++     * This method runs on main thread, which may freeze the server.
++     *
++     * @return A ItemStack of the skull of the player
++     */
++    ItemStack getSkull();
++
++    /**
++     * Get a skull item of a player.
++     * This method runs on main thread, which may freeze the server.
++     *
++     * @return A CompletableFuture the of ItemStack of the skull of the player
++     */
++    CompletableFuture<ItemStack> getSkullAsynchronously();
++    // KeYi end
+ }

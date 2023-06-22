@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <wangxyper@163.com>
+Date: Thu, 22 Jun 2023 10:33:29 +0800
+Subject: [PATCH] Replace something in KeYi's player skull api
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+index 9e359767837d0a0e250d6a64bdb42598fa87d2ae..9cad806b33bb0c6c41f9fd3567b247bde13aad6c 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+@@ -141,6 +141,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
+ import org.bukkit.craftbukkit.map.CraftMapView;
+ import org.bukkit.craftbukkit.map.RenderData;
+ import org.bukkit.craftbukkit.profile.CraftPlayerProfile;
++import org.bukkit.craftbukkit.scheduler.CraftScheduler;
+ import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
+ import org.bukkit.craftbukkit.util.CraftChatMessage;
+ import org.bukkit.craftbukkit.util.CraftLocation;
+@@ -3183,12 +3184,17 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+ 
+     @Override
+     public CompletableFuture<ItemStack> getSkullAsynchronously() {
++        //Molia start - A better replacement of this code block
++        /*
+         ExecutorService executorService = Executors.newCachedThreadPool();
+ 
+         CompletableFuture<ItemStack> future = (CompletableFuture<ItemStack>) executorService.submit(() -> getSkull());
+         executorService.shutdown();
+ 
+-        return future;
++        return future;*/
++
++        return CompletableFuture.supplyAsync(this::getSkull,r -> Bukkit.getAsyncScheduler().runNow(CraftScheduler.MINECRAFT, a->r.run()));
++        //Molia end
+     }
+     // KeYi end
+ }
