@@ -37,6 +37,7 @@ Credits:
 -------------
 - [Folia](https://github.com/PaperMC/Folia)
 - [Gale](https://github.com/GaleMC/Gale)
+- KeYi(R.I.P)
 
 ## Attention
 The supports of bukkit plugin are unsafe,Think twice before you adding bukkit plugins.
