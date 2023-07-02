@@ -84,7 +84,7 @@ index acc49f66bf34e2507d0ee6fec0a56b11bfc68f46..7fc87841fd72fc9b5bca4fbdffd378c7
          AdvancementProgress advancementprogress = this.getOrStartProgress(advancement);
          boolean flag1 = advancementprogress.isDone();
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index d58e8211fc765c61548ac2a180de87dd2934ba37..5ec2f8de35e7f24d7d212ade6bb03fc6d83f1300 100644
+index 817f79bfca1aec161cb4635b9c7a8e21b14db7eb..46bf3e37eb2a76304c8a0376a36f57351b04475a 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -185,6 +185,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
@@ -110,7 +110,7 @@ index d58e8211fc765c61548ac2a180de87dd2934ba37..5ec2f8de35e7f24d7d212ade6bb03fc6
                  PlayerChangedWorldEvent changeEvent = new PlayerChangedWorldEvent(this.getBukkitEntity(), worldserver1.getWorld());
                  this.level().getCraftServer().getPluginManager().callEvent(changeEvent);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index d4620ddfcd06a037f647ab0a8938797405e001b2..bc6efc5782b122a4391ece5421f5e718c11b5366 100644
+index 654ab7fc8caa9af7dc665391a197b41599c2bc8f..64a69fdf39814b0b41cf9edf83b630f2a1dce57c 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -81,6 +81,7 @@ import net.minecraft.server.ServerScoreboard;
@@ -149,7 +149,7 @@ index d4620ddfcd06a037f647ab0a8938797405e001b2..bc6efc5782b122a4391ece5421f5e718
          final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
  
          if (jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure
-@@ -1163,13 +1178,20 @@ public abstract class PlayerList {
+@@ -1169,13 +1184,20 @@ public abstract class PlayerList {
  
      public String[] getPlayerNamesArray() {
          List<ServerPlayer> players = new java.util.ArrayList<>(this.players); // Folia start - region threading
@@ -171,7 +171,7 @@ index d4620ddfcd06a037f647ab0a8938797405e001b2..bc6efc5782b122a4391ece5421f5e718
          return astring;
      }
  
-@@ -1659,4 +1681,16 @@ public abstract class PlayerList {
+@@ -1665,4 +1687,16 @@ public abstract class PlayerList {
      public boolean isAllowCheatsForAllPlayers() {
          return this.allowCheatsForAllPlayers;
      }

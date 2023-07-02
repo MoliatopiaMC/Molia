@@ -5,7 +5,7 @@ Subject: [PATCH] Leaves Utils
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 865e088a135439c9a7f9983e8937fa674d2f0014..0413d660487fa138202173785cbfa922a1108d36 100644
+index 67185bb01c1019170641495e5d01cf96fc5467a5..76a6ab52646d91db680ef5c0749bda861ec05018 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -417,6 +417,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -36,7 +36,7 @@ index 865e088a135439c9a7f9983e8937fa674d2f0014..0413d660487fa138202173785cbfa922
  
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Loading entity NBT");
-@@ -5595,4 +5602,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -5602,4 +5609,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return ((net.minecraft.server.level.ServerChunkCache) level.getChunkSource()).isPositionTicking(this);
      }
      // Paper end

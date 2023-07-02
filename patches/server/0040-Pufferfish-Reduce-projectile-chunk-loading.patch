@@ -1,0 +1,69 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 2 Jul 2023 13:23:53 +0800
+Subject: [PATCH] Pufferfish Reduce projectile chunk loading
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index adcd3f1fee51d37a4ebd308d5d6ad84a9b180cc2..8ed23e6a42aea14b1ce572637a7bf200dffa9c48 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -14,6 +14,8 @@ public class MoliaConfig {
+     public static long checkStuckInWallInterval = 10;
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     public static int acquirePoiForStuckEntity = 200;
++    public static int maxProjectileLoadsPerProjectile = 10;
++    public static int maxProjectileLoadsPerTick = 10;
+ 
+     //Misc
+     public static String serverModName = "Molia";
+@@ -52,6 +54,8 @@ public class MoliaConfig {
+         checkStuckInWallInterval = getLong("optimizations.check_stuck_in_wall_interval",checkStuckInWallInterval);
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         acquirePoiForStuckEntity = getInt("optimizations.acquire_poi_for_stuck_entity",acquirePoiForStuckEntity);
++        maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
++        maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
+ 
+         serverModName = getString("misc.server_mod_name","Molia");
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+index 5835a1ba3e2927c6b5d143506b440ac5a43aaaa4..6a3a9923dfe093aa709b473597263cc8b2d32212 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+@@ -44,6 +44,36 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+         super(type, world);
+     }
+ 
++    // Pufferfish start
++    private static int loadedThisTick = 0;
++    private static int loadedTick;
++
++    private int loadedLifetime = 0;
++    @Override
++    public void setPos(double x, double y, double z) {
++        int currentTick = net.minecraft.server.MinecraftServer.currentTick;
++        if (loadedTick != currentTick) {
++            loadedTick = currentTick;
++            loadedThisTick = 0;
++        }
++        int previousX = Mth.floor(this.getX()) >> 4, previousZ = Mth.floor(this.getZ()) >> 4;
++        int newX = Mth.floor(x) >> 4, newZ = Mth.floor(z) >> 4;
++        if (previousX != newX || previousZ != newZ) {
++            boolean isLoaded = ((net.minecraft.server.level.ServerChunkCache) this.level().getChunkSource()).getChunkAtIfLoadedMainThread(newX, newZ) != null;
++            if (!isLoaded) {
++                if (Projectile.loadedThisTick > me.earthme.molia.MoliaConfig.maxProjectileLoadsPerTick) {
++                    if (++this.loadedLifetime > me.earthme.molia.MoliaConfig.maxProjectileLoadsPerProjectile) {
++                        this.discard();
++                    }
++                    return;
++                }
++                Projectile.loadedThisTick++;
++            }
++        }
++        super.setPos(x, y, z);
++    }
++    // Pufferfish end
++
+     public void setOwner(@Nullable Entity entity) {
+         if (entity != null) {
+             this.ownerUUID = entity.getUUID();

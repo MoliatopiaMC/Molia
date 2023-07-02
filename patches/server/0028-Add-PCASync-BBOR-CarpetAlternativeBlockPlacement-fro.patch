@@ -74,7 +74,7 @@ index 82ffef34b596a98faa245ba401e67add9d9ac7d0..f961681220b1ed77ad34fd72000b69cf
                  byte[] data = new byte[packet.data.readableBytes()];
                  packet.data.readBytes(data);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index bc6efc5782b122a4391ece5421f5e718c11b5366..457d901e4ef22188f4087d8b672bf2541e48d112 100644
+index 64a69fdf39814b0b41cf9edf83b630f2a1dce57c..8e157673fdcb45bbf971ec242bef01eb654b6d3d 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -436,6 +436,8 @@ public abstract class PlayerList {
@@ -86,7 +86,7 @@ index bc6efc5782b122a4391ece5421f5e718c11b5366..457d901e4ef22188f4087d8b672bf254
  
          final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
  
-@@ -678,6 +680,7 @@ public abstract class PlayerList {
+@@ -684,6 +686,7 @@ public abstract class PlayerList {
          return this.remove(entityplayer, net.kyori.adventure.text.Component.translatable("multiplayer.player.left", net.kyori.adventure.text.format.NamedTextColor.YELLOW, io.papermc.paper.configuration.GlobalConfiguration.get().messages.useDisplayNameInQuitMessage ? entityplayer.getBukkitEntity().displayName() : PaperAdventure.asAdventure(entityplayer.getDisplayName())));
      }
      public net.kyori.adventure.text.Component remove(ServerPlayer entityplayer, net.kyori.adventure.text.Component leaveMessage) {
@@ -94,7 +94,7 @@ index bc6efc5782b122a4391ece5421f5e718c11b5366..457d901e4ef22188f4087d8b672bf254
          // Paper end
          ServerLevel worldserver = entityplayer.serverLevel();
  
-@@ -1675,7 +1678,7 @@ public abstract class PlayerList {
+@@ -1681,7 +1684,7 @@ public abstract class PlayerList {
              entityplayer.connection.send(packetplayoutrecipeupdate);
              entityplayer.getRecipeBook().sendInitialRecipeBook(entityplayer);
          }

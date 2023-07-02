@@ -35,10 +35,10 @@ index 28b48b0c80d51b98501c2d6f767aed0a6cbd5661..adcd3f1fee51d37a4ebd308d5d6ad84a
          enableFakePlayerSkipSleep = getBoolean("fakeplayer.enable_fake_player_skip_sleep",enableFakePlayerSkipSleep);
          fakePlayerSizeLimit = getInt("fakeplayer.fake_player_size_limit",fakePlayerSizeLimit);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 457d901e4ef22188f4087d8b672bf2541e48d112..020d7abd424971af04b8be029675c7924113007c 100644
+index 8e157673fdcb45bbf971ec242bef01eb654b6d3d..0fdb556aaf8422bc292f8aaedbd8100b1e7d7c09 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
-@@ -1363,6 +1363,7 @@ public abstract class PlayerList {
+@@ -1369,6 +1369,7 @@ public abstract class PlayerList {
          player.connection.send(new ClientboundInitializeBorderPacket(worldborder));
          player.connection.send(new ClientboundSetTimePacket(world.getGameTime(), world.getDayTime(), world.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)));
          player.connection.send(new ClientboundSetDefaultSpawnPositionPacket(world.getSharedSpawnPos(), world.getSharedSpawnAngle()));

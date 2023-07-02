@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 2 Jul 2023 13:57:15 +0800
+Subject: [PATCH] Fix compile errors in pufferfish's patch
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index ef25ddfa98e05c1a0d75efa39face8dc0a2bdc18..a2c0f214e70cc51c56e4a1e6703a64f53853dd62 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -946,7 +946,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+     private final ThreadLocal<io.papermc.paper.util.math.ThreadUnsafeRandom> randomTickRandom = ThreadLocal.withInitial(() -> new io.papermc.paper.util.math.ThreadUnsafeRandom(this.random.nextLong())); // Folia - region threading
+     // Paper end
+ 
+-    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.randomTickRandom.nextInt(16); } // Pufferfish
++    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.randomTickRandom.get().nextInt(16); } // Pufferfish
+ 
+     public void tickChunk(LevelChunk chunk, int randomTickSpeed) {
+         io.papermc.paper.util.math.ThreadUnsafeRandom randomTickRandom = this.randomTickRandom.get(); // Folia - region threading
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+index 6a3a9923dfe093aa709b473597263cc8b2d32212..b3e9a0c86b26d99e1f0892bded43c4726d2a0182 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+@@ -4,6 +4,8 @@ import com.google.common.base.MoreObjects;
+ import java.util.Iterator;
+ import java.util.UUID;
+ import javax.annotation.Nullable;
++
++import io.papermc.paper.threadedregions.TickRegionScheduler;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.network.protocol.Packet;
+@@ -46,12 +48,12 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+ 
+     // Pufferfish start
+     private static int loadedThisTick = 0;
+-    private static int loadedTick;
++    private static long loadedTick;
+ 
+     private int loadedLifetime = 0;
+     @Override
+     public void setPos(double x, double y, double z) {
+-        int currentTick = net.minecraft.server.MinecraftServer.currentTick;
++        long currentTick = TickRegionScheduler.getCurrentRegion().getData().getCurrentTick();
+         if (loadedTick != currentTick) {
+             loadedTick = currentTick;
+             loadedThisTick = 0;
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index a283968a3f1cb45d4e86f022be0ac96e3224df96..e472c5be76c17facbc61df112521d8569bd33563 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -959,6 +959,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
+         this.playSeededSound(except, x, y, z, sound, category, volume, pitch, this.threadSafeRandom.nextLong());
+     }
+ 
++    //Molia Start - Fix compile error and thread safe issue in pufferfish's patch
++    public RandomSource getThreadSafeRandomSource(){
++        return this.threadSafeRandom;
++    }
++
+     public void playSound(@Nullable Player except, Entity entity, SoundEvent sound, SoundSource category, float volume, float pitch) {
+         this.playSeededSound(except, entity, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(sound), category, volume, pitch, this.threadSafeRandom.nextLong());
+     }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+index 775bd67a067e3072ae93f13b3e507102aa3d75d3..08d963ff5df9584f32a08cdbbd8641a6eaaada1a 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+@@ -132,7 +132,7 @@ public class LevelChunk extends ChunkAccess {
+         this.blockTicks = blockTickScheduler;
+         this.fluidTicks = fluidTickScheduler;
+ 
+-        this.lightningTick = this.level.getThreadUnsafeRandom().nextInt(100000) << 1; // Pufferfish - initialize lightning tick
++        this.lightningTick = this.level.getThreadSafeRandomSource().nextInt(100000) << 1; // Pufferfish - initialize lightning tick
+     }
+ 
+     // CraftBukkit start

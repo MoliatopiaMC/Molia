@@ -37,6 +37,7 @@ Credits:
 -------------
 - [Folia](https://github.com/PaperMC/Folia)
 - [Gale](https://github.com/GaleMC/Gale)
+- [Pufferfish](https://github.com/pufferfish-gg/pufferfish/)
 - KeYi(R.I.P)
 - [Leaves](https://github.com/LeavesMC/Leaves)
 

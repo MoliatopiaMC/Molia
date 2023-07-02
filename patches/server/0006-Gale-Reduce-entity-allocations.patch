@@ -5,7 +5,7 @@ Subject: [PATCH] Gale Reduce entity allocations
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index deaf4b65b6c9f3dbab6578c25fb78ca84507f70b..7b699c92815b88ee059e3ef83823668cbf31a7df 100644
+index 27b57db24587337ccdce29e492052ca419863323..2d5e4526f1bde8a46db51d109443e656751faa02 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -433,6 +433,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -17,10 +17,10 @@ index deaf4b65b6c9f3dbab6578c25fb78ca84507f70b..7b699c92815b88ee059e3ef83823668c
          return this.yRot;
      }
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 511ec694f3336a5d7276d171dd2345ed2ea1acac..07bffaa3ff334e52868c8e4abc93d4b12d1652db 100644
+index f185aac0a944d561d394aa6a3907ec4999996686..5a94a6c81f091b4ae9d5386f58dd42fbb8a579be 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -415,7 +415,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -422,7 +422,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
              boolean flag = this instanceof net.minecraft.world.entity.player.Player;
  
              if (!this.level().isClientSide) {
@@ -32,7 +32,7 @@ index 511ec694f3336a5d7276d171dd2345ed2ea1acac..07bffaa3ff334e52868c8e4abc93d4b1
                      this.hurt(this.damageSources().inWall(), 1.0F);
                  } else if (flag && !this.level().getWorldBorder().isWithinBounds(this.getBoundingBox())) {
                      double d0 = this.level().getWorldBorder().getDistanceToBorder(this) + this.level().getWorldBorder().getDamageSafeZone();
-@@ -1372,6 +1375,15 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1380,6 +1383,15 @@ public abstract class LivingEntity extends Entity implements Attackable {
          return this.getHealth() <= 0.0F;
      }
  

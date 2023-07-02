@@ -89,7 +89,7 @@ index 78ada86028bac06b62a7d70776a29705a3b11a06..0b75296326ded03e46e51037fd7e49e9
          boolean usingProxy = org.spigotmc.SpigotConfig.bungee || io.papermc.paper.configuration.GlobalConfiguration.get().proxies.velocity.enabled;
          String proxyFlavor = (io.papermc.paper.configuration.GlobalConfiguration.get().proxies.velocity.enabled) ? "Velocity" : "BungeeCord";
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 07bffaa3ff334e52868c8e4abc93d4b12d1652db..f2dfa71100eb90775b4f9459f344d1ddeb3c2fd8 100644
+index 5a94a6c81f091b4ae9d5386f58dd42fbb8a579be..43e093fed02e678d34f805e6f9faf587418a0fa2 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -19,6 +19,8 @@ import java.util.Optional;
@@ -101,7 +101,7 @@ index 07bffaa3ff334e52868c8e4abc93d4b12d1652db..f2dfa71100eb90775b4f9459f344d1dd
  import net.minecraft.BlockUtil;
  import net.minecraft.advancements.CriteriaTriggers;
  import net.minecraft.commands.arguments.EntityAnchorArgument;
-@@ -416,7 +418,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -423,7 +425,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
  
              if (!this.level().isClientSide) {
                  // Gale start - Pufferfish - reduce in wall checks
