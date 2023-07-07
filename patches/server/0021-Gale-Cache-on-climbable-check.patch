@@ -5,10 +5,10 @@ Subject: [PATCH] Gale Cache on climbable check
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 43e093fed02e678d34f805e6f9faf587418a0fa2..4d0cdfee39f2b496990043fd1e836e125a0a7e90 100644
+index 350363ebea34a467b0acf9faad9dbee02bafd3d4..07ab78cc30e31fdf3f49112b6e16910df9417b26 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -145,7 +145,6 @@ import org.bukkit.event.entity.EntityTeleportEvent;
+@@ -144,7 +144,6 @@ import org.bukkit.event.entity.EntityTeleportEvent;
  import org.bukkit.event.player.PlayerItemConsumeEvent;
  // CraftBukkit end
  
@@ -16,7 +16,7 @@ index 43e093fed02e678d34f805e6f9faf587418a0fa2..4d0cdfee39f2b496990043fd1e836e12
  
  public abstract class LivingEntity extends Entity implements Attackable {
  
-@@ -1999,6 +1998,20 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1989,6 +1988,20 @@ public abstract class LivingEntity extends Entity implements Attackable {
          return this.lastClimbablePos;
      }
  

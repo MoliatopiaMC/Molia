@@ -68,7 +68,7 @@ index a2c0f214e70cc51c56e4a1e6703a64f53853dd62..0938135a4532a8ca8b2816e52513683e
                      if (false && this.shouldDiscardEntity(entity)) { // CraftBukkit - We prevent spawning in general, so this butchering is not needed
                          entity.discard();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index ab61631b2f8c64ecdbd9929ea548f389309cf13e..28a4d20bcb38d1d3782be03dfc87e4c8a9250db5 100644
+index ad1d7cf5ada801e6d2289e48df96d87a8f0b72bb..36b5b48d8129420dfc267c8e85efd3c4e19b4f21 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -24,6 +24,8 @@ import java.util.function.BiConsumer;
@@ -234,10 +234,10 @@ index 4aeab90e778629c355189dfe79c39c4b21f5f5ac..6ed4ac06c76b8d0d6e8db778cade15db
          this.level().getProfiler().pop();
          this.level().getProfiler().push("tadpoleActivityUpdate");
 diff --git a/src/main/java/net/minecraft/world/entity/animal/goat/Goat.java b/src/main/java/net/minecraft/world/entity/animal/goat/Goat.java
-index 528e7ba29dcd38726b2c1bbc1d8ac208c64ba9df..2c7193e967b4cb5a7c98a760286a2c3791152359 100644
+index 247aca0b612f5079a0596350e8311c385df8ab1c..7f21d1d400c8a5615ed1a787dcb0680338f8c28d 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/goat/Goat.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/goat/Goat.java
-@@ -188,9 +188,11 @@ public class Goat extends Animal {
+@@ -189,9 +189,11 @@ public class Goat extends Animal {
          return (Brain<Goat>) super.getBrain(); // CraftBukkit - decompile error
      }
  

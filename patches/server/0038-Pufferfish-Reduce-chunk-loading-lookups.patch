@@ -5,10 +5,10 @@ Subject: [PATCH] Pufferfish Reduce chunk loading & lookups
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
-index 5519ccf558c09f32e19b35f4b403fc9ed966ed65..54a9529ea92889d57e348307a35097f715a13501 100644
+index 39eb9301626b191958ce42daa34b1ff3241cea80..eaf45b502a698e26a703b93e62989a338479496e 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
-@@ -322,11 +322,17 @@ public class EnderMan extends Monster implements NeutralMob {
+@@ -326,11 +326,17 @@ public class EnderMan extends Monster implements NeutralMob {
      private boolean teleport(double x, double y, double z) {
          BlockPos.MutableBlockPos blockposition_mutableblockposition = new BlockPos.MutableBlockPos(x, y, z);
  

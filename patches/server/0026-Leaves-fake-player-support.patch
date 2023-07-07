@@ -31,7 +31,7 @@ index d0df1c3ccefbe845b67ccb870d3959d4df3ec1fb..3888fcb9410f30d1ed2efdb99b2f40a0
      }
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 32cbace2e30e66b0445e671aca951c8a7670c080..3f1d839326bb7cd266c91ce83478a98662d889c6 100644
+index 50a057f7297a6a01b708d7550170c8de86581afe..b1adb4000987021be2c5e3ac1184f3266aae3a57 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -129,6 +129,7 @@ import net.minecraft.util.profiling.metrics.storage.MetricsPersister;
@@ -110,7 +110,7 @@ index 817f79bfca1aec161cb4635b9c7a8e21b14db7eb..46bf3e37eb2a76304c8a0376a36f5735
                  PlayerChangedWorldEvent changeEvent = new PlayerChangedWorldEvent(this.getBukkitEntity(), worldserver1.getWorld());
                  this.level().getCraftServer().getPluginManager().callEvent(changeEvent);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 654ab7fc8caa9af7dc665391a197b41599c2bc8f..64a69fdf39814b0b41cf9edf83b630f2a1dce57c 100644
+index ffb5332310e9b2d10292fe01c37fd48552fedffc..374473a85a1384a428612b89e9c767cfaf3ff397 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -81,6 +81,7 @@ import net.minecraft.server.ServerScoreboard;
@@ -239,7 +239,7 @@ index 706b354ac9a1a6a4a1e61b2a109180d1dd22bbbd..f13f21dbd50f63a71276837abbcf82e0
          FeatureFlagSet featureflagset = player.level().enabledFeatures();
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
-index 76bcfda336e9cfa039d80ea3ccbebbc3d2b13f7f..415ae764f215e06a04fa590265a64516f8c13184 100644
+index 19b47478d318edce1242c2a5ddd73da963a24595..23a82f08ad51ca8d209a87e403899ee1fe8a78b9 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
 @@ -191,6 +191,8 @@ import org.bukkit.plugin.Plugin;
@@ -251,7 +251,7 @@ index 76bcfda336e9cfa039d80ea3ccbebbc3d2b13f7f..415ae764f215e06a04fa590265a64516
  
  import net.md_5.bungee.api.chat.BaseComponent; // Spigot
  
-@@ -227,7 +229,12 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+@@ -226,7 +228,12 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
          if (entity instanceof LivingEntity) {
              // Players
              if (entity instanceof net.minecraft.world.entity.player.Player) {

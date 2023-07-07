@@ -29,7 +29,7 @@ index 8dc09260c390fc988342e13f53d520a300a6170a..28b48b0c80d51b98501c2d6f767aed0a
          enableFakePlayerSkipSleep = getBoolean("fakeplayer.enable_fake_player_skip_sleep",enableFakePlayerSkipSleep);
          fakePlayerSizeLimit = getInt("fakeplayer.fake_player_size_limit",fakePlayerSizeLimit);
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 3f1d839326bb7cd266c91ce83478a98662d889c6..27f4480eaa5f410213a396980d0a764ccf3f5348 100644
+index b1adb4000987021be2c5e3ac1184f3266aae3a57..74757637e8e762e129b5dc8aa3160d19ad5a019c 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1721,6 +1721,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -42,7 +42,7 @@ index 3f1d839326bb7cd266c91ce83478a98662d889c6..27f4480eaa5f410213a396980d0a764c
          if (region == null) for (int i = 0; i < this.tickables.size(); ++i) {  // Folia - region threading - TODO WTF is this?
              ((Runnable) this.tickables.get(i)).run();
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 82ffef34b596a98faa245ba401e67add9d9ac7d0..f961681220b1ed77ad34fd72000b69cf43193959 100644
+index 3c5b412ac6b09c667b05d9c44f341d4e8506c4cc..3e5b06724c8fd1b4c8e4330e4576a2bb55793891 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -245,6 +245,7 @@ import org.bukkit.inventory.CraftingInventory;
@@ -53,7 +53,7 @@ index 82ffef34b596a98faa245ba401e67add9d9ac7d0..f961681220b1ed77ad34fd72000b69cf
  // CraftBukkit end
  
  public class ServerGamePacketListenerImpl implements ServerPlayerConnection, TickablePacketListener, ServerGamePacketListener {
-@@ -3589,6 +3590,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
+@@ -3590,6 +3591,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                  this.disconnect("Invalid payload UNREGISTER!", org.bukkit.event.player.PlayerKickEvent.Cause.INVALID_PAYLOAD); // Paper - kick event cause
              }
          } else {
@@ -74,7 +74,7 @@ index 82ffef34b596a98faa245ba401e67add9d9ac7d0..f961681220b1ed77ad34fd72000b69cf
                  byte[] data = new byte[packet.data.readableBytes()];
                  packet.data.readBytes(data);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 64a69fdf39814b0b41cf9edf83b630f2a1dce57c..8e157673fdcb45bbf971ec242bef01eb654b6d3d 100644
+index 374473a85a1384a428612b89e9c767cfaf3ff397..ef5da5bccf0400c07eec560b46fcbc4a0dd2c869 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -436,6 +436,8 @@ public abstract class PlayerList {
@@ -104,7 +104,7 @@ index 64a69fdf39814b0b41cf9edf83b630f2a1dce57c..8e157673fdcb45bbf971ec242bef01eb
  
      public boolean isAllowCheatsForAllPlayers() {
 diff --git a/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java b/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
-index 79b6e241f425622fdc575b77d8dce7061c0ab783..305ff92d196ebc47009ea7373d53167704c1ca7d 100644
+index 9b35a50eb99551f28d45fd5114e0401b4c54646e..d806c2d56bdc8452ce037caa50bb16ce472df437 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
 @@ -7,6 +7,8 @@ import java.util.function.DoubleSupplier;
@@ -116,7 +116,7 @@ index 79b6e241f425622fdc575b77d8dce7061c0ab783..305ff92d196ebc47009ea7373d531677
  import net.minecraft.advancements.CriteriaTriggers;
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
-@@ -376,6 +378,11 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
+@@ -379,6 +381,11 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
  
      @Override
      public void containerChanged(Container sender) {
@@ -550,10 +550,10 @@ index 4d4e503cfdefb8c8e7f03f5792f354ec0a41c125..a7c401fd489b7a2cdd4d4a9147ed8b91
  
      public Level getLevel() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index dd00268bd12f81c4e4080c38ec72950bb66628c8..6b486846eced75033a71743f6c318c2154760528 100644
+index 3ce2ebeaf07a17a25ae16a42f5f98a91d530cacb..41364474ca672536bd8247d131760e4c1a577ceb 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -42,6 +42,8 @@ import java.util.logging.Level;
+@@ -43,6 +43,8 @@ import java.util.logging.Level;
  import java.util.logging.Logger;
  import java.util.stream.Collectors;
  import javax.imageio.ImageIO;
@@ -562,7 +562,7 @@ index dd00268bd12f81c4e4080c38ec72950bb66628c8..6b486846eced75033a71743f6c318c21
  import net.minecraft.advancements.Advancement;
  import net.minecraft.commands.CommandSourceStack;
  import net.minecraft.commands.Commands;
-@@ -468,6 +470,7 @@ public final class CraftServer implements Server {
+@@ -471,6 +473,7 @@ public final class CraftServer implements Server {
              MapPalette.setMapColorCache(new CraftMapColorCache(this.logger));
          }
          datapackManager = new io.papermc.paper.datapack.PaperDatapackManager(console.getPackRepository()); // Paper
@@ -570,7 +570,7 @@ index dd00268bd12f81c4e4080c38ec72950bb66628c8..6b486846eced75033a71743f6c318c21
      }
  
      public boolean getCommandBlockOverride(String command) {
-@@ -1094,6 +1097,20 @@ public final class CraftServer implements Server {
+@@ -1097,6 +1100,20 @@ public final class CraftServer implements Server {
  
          org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
          this.console.paperConfigurations.reloadConfigs(this.console);

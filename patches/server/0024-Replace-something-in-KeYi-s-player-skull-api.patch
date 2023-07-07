@@ -5,10 +5,10 @@ Subject: [PATCH] Replace something in KeYi's player skull api
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 9e359767837d0a0e250d6a64bdb42598fa87d2ae..9cad806b33bb0c6c41f9fd3567b247bde13aad6c 100644
+index e92fddd6f4540a7516a38109d973e5609043df91..31c685f0f50beb00fd1c3afac9d498d587d50574 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-@@ -141,6 +141,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
+@@ -147,6 +147,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
  import org.bukkit.craftbukkit.map.CraftMapView;
  import org.bukkit.craftbukkit.map.RenderData;
  import org.bukkit.craftbukkit.profile.CraftPlayerProfile;
@@ -16,7 +16,7 @@ index 9e359767837d0a0e250d6a64bdb42598fa87d2ae..9cad806b33bb0c6c41f9fd3567b247bd
  import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
  import org.bukkit.craftbukkit.util.CraftChatMessage;
  import org.bukkit.craftbukkit.util.CraftLocation;
-@@ -3183,12 +3184,17 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -3212,12 +3213,17 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
  
      @Override
      public CompletableFuture<ItemStack> getSkullAsynchronously() {

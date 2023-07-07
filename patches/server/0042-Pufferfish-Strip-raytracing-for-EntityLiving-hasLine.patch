@@ -5,10 +5,10 @@ Subject: [PATCH] Pufferfish Strip raytracing for EntityLiving#hasLineOfSight
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 4d0cdfee39f2b496990043fd1e836e125a0a7e90..f35f7952ff5df80c260eb4a3e81af1f4237a7357 100644
+index 07ab78cc30e31fdf3f49112b6e16910df9417b26..86303180cbd29669e7eef3482b73cfecbdb82d06 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -3698,7 +3698,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -3688,7 +3688,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
              Vec3 vec3d1 = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
  
              // Paper - diff on change - used in CraftLivingEntity#hasLineOfSight(Location) and CraftWorld#lineOfSightExists
