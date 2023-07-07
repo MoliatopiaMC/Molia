@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Fri, 7 Jul 2023 10:31:51 +0800
+Subject: [PATCH] Correct a config key name in dab
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index b8323b7af2a695904c2008dc3c1fa13b390a3b39..95fe40b7003a92d83787ed92e829c9d28d5dd54c 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -74,7 +74,7 @@ public class MoliaConfig {
+         dearEnabled = getBoolean("optimizations.dab.enabled",true);
+         startDistanceSquared = getInt("optimizations.dab.start_distance",12) ^ 2;
+         maximumActivationPrio = getInt("optimizations.dab.max_tick_freq",20);
+-        activationDistanceMod = getInt("optimizations.activation_dist_mod",8);
++        activationDistanceMod = getInt("optimizations.dab.activation_dist_mod",8);
+ 
+         prepareForDAB();
+ 
