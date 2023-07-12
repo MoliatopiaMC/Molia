@@ -5,7 +5,7 @@ Subject: [PATCH] Compile error fixes
 
 
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 3e5b06724c8fd1b4c8e4330e4576a2bb55793891..36d1362c7bc6b08bbe5082f69f3e916cff3d9b04 100644
+index 7f53e93edf39a9882fd7c39fe7d555570e6f2af1..a1e699fe58c0c9a270a348ee85a53d3cbc609a8a 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -29,6 +29,8 @@ import java.util.function.UnaryOperator;
@@ -17,7 +17,7 @@ index 3e5b06724c8fd1b4c8e4330e4576a2bb55793891..36d1362c7bc6b08bbe5082f69f3e916c
  import net.minecraft.ChatFormatting;
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
-@@ -3593,10 +3595,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
+@@ -3601,10 +3603,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
          } else {
              // Leaves start - leaves extra protocol
              try {

@@ -42,7 +42,7 @@ index b1adb4000987021be2c5e3ac1184f3266aae3a57..74757637e8e762e129b5dc8aa3160d19
          if (region == null) for (int i = 0; i < this.tickables.size(); ++i) {  // Folia - region threading - TODO WTF is this?
              ((Runnable) this.tickables.get(i)).run();
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 3c5b412ac6b09c667b05d9c44f341d4e8506c4cc..3e5b06724c8fd1b4c8e4330e4576a2bb55793891 100644
+index b2feaea169fa9d3977c3dfdfdf3dea9283f5d854..7f53e93edf39a9882fd7c39fe7d555570e6f2af1 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -245,6 +245,7 @@ import org.bukkit.inventory.CraftingInventory;
@@ -53,7 +53,7 @@ index 3c5b412ac6b09c667b05d9c44f341d4e8506c4cc..3e5b06724c8fd1b4c8e4330e4576a2bb
  // CraftBukkit end
  
  public class ServerGamePacketListenerImpl implements ServerPlayerConnection, TickablePacketListener, ServerGamePacketListener {
-@@ -3590,6 +3591,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
+@@ -3598,6 +3599,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                  this.disconnect("Invalid payload UNREGISTER!", org.bukkit.event.player.PlayerKickEvent.Cause.INVALID_PAYLOAD); // Paper - kick event cause
              }
          } else {
