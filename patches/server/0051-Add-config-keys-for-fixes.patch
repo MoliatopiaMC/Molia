@@ -1,0 +1,135 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Fri, 14 Jul 2023 12:45:32 +0800
+Subject: [PATCH] Add config keys for fixes
+
+
+diff --git a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+index 69a9dc0aa53d4bf1ae841db9354b377dafedab8d..03b79f68acbe6cc3b3c53afce9bd88998ac2e5bc 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
++++ b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
+ import it.unimi.dsi.fastutil.longs.LongComparator;
+ import it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.network.protocol.Packet;
+ import net.minecraft.network.protocol.game.ClientboundSetChunkCacheCenterPacket;
+ import net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket;
+@@ -480,11 +481,13 @@ public class RegionizedPlayerChunkLoader {
+         }
+ 
+         private void sendChunk(final int chunkX, final int chunkZ) {
++            //Molia start - Add config for this
+             //Molia start
+-            if (this.sentChunks.contains(CoordinateUtils.getChunkKey(chunkX, chunkZ))){
++            if (this.sentChunks.contains(CoordinateUtils.getChunkKey(chunkX, chunkZ)) && MoliaConfig.enableChunkDoublingSendFix){
+                 return;
+             }
+             //Molia end
++            //Molia end
+ 
+             if (this.sentChunks.add(CoordinateUtils.getChunkKey(chunkX, chunkZ))) {
+                 this.world.getChunkSource().chunkMap.updateChunkTracking(this.player,
+diff --git a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
+index fd585a0587d7ce2f6a766b55b27cf93c937f57ab..458756cad030031dcc4370d82844109d772fbc72 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
++++ b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
+@@ -9,6 +9,7 @@ import io.papermc.paper.world.ChunkEntitySlices;
+ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import io.papermc.paper.chunk.system.ChunkSystem;
+ import net.minecraft.server.level.ChunkHolder;
+@@ -490,10 +491,16 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
+ 
+     private ChunkEntitySlices moveEntity(final Entity entity) {
+         // ensure we own the entity
++        //Molia start - Add config for this:
+         //Molia start - Remove this async catcher
+         //TickThread.ensureTickThread(entity, "Cannot move entity off-main");
+         //Molia end
+ 
++        if (!MoliaConfig.enableAsyncCatcherFix){
++            TickThread.ensureTickThread(entity, "Cannot move entity off-main");
++        }
++        //Molia end
++
+         final BlockPos newPos = entity.blockPosition();
+         final int newSectionX = newPos.getX() >> 4;
+         final int newSectionY = Mth.clamp(newPos.getY() >> 4, this.minSection, this.maxSection);
+@@ -503,6 +510,7 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
+             return null;
+         }
+ 
++        //Molia start - Add config for this:
+         //Molia start - Do not ensure the tick thread because the entity may have a large move range
+         /*
+         // ensure the new section is owned by this tick thread
+@@ -513,6 +521,15 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
+          */
+         //Molia end
+ 
++        if (!MoliaConfig.enableAsyncCatcherFix){
++            // ensure the new section is owned by this tick thread
++            TickThread.ensureTickThread(this.world, newSectionX, newSectionZ, "Cannot move entity off-main");
++
++            // ensure the old section is owned by this tick thread
++            TickThread.ensureTickThread(this.world, entity.sectionX, entity.sectionZ, "Cannot move entity off-main");
++        }
++        //Molia end
++
+         final ChunkEntitySlices old = this.getChunk(entity.sectionX, entity.sectionZ);
+         final ChunkEntitySlices slices = this.getOrCreateChunk(newSectionX, newSectionZ);
+ 
+diff --git a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
+index ad84033391c9e2e44aa3e0c0133d0627e752725c..a368d1ddd1c8db7f61ce28c4a216f14c8b9cbe5f 100644
+--- a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
++++ b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
+@@ -5,6 +5,7 @@ import io.papermc.paper.chunk.system.entity.EntityLookup;
+ import io.papermc.paper.util.TickThread;
+ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.server.level.ChunkHolder;
+ import net.minecraft.server.level.FullChunkStatus;
+@@ -58,6 +59,11 @@ public final class ChunkEntitySlices {
+     private final StampedLock accessLock = new StampedLock();
+ 
+     private <T> T lockedOptiReadCode(Supplier<T> action){
++        //Add config for this
++        if (!MoliaConfig.enableAsyncCatcherFix){
++            return action.get();
++        }
++
+         long stamp = this.accessLock.tryOptimisticRead();
+         if (this.accessLock.validate(stamp)){
+             return action.get();
+@@ -72,6 +78,11 @@ public final class ChunkEntitySlices {
+     }
+ 
+     private <T> T lockedWriteCode(Supplier<T> action){
++        //Add config for this
++        if (!MoliaConfig.enableAsyncCatcherFix){
++            return action.get();
++        }
++
+         long stamp = this.accessLock.writeLock();
+         try {
+             return action.get();
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 95fe40b7003a92d83787ed92e829c9d28d5dd54c..8c1febe740748ad502a58d266cea49dcea21d22b 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -21,6 +21,8 @@ public class MoliaConfig {
+ 
+     //Misc
+     public static String serverModName = "Molia";
++    public static boolean enableAsyncCatcherFix = true;
++    public static boolean enableChunkDoublingSendFix = true;
+ 
+     //Unsafe
+     public static boolean disableFoliaPluginCheck = false;
