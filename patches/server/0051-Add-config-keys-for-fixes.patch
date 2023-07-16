@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MrHua269 <wangxyper@163.com>
-Date: Sun, 16 Jul 2023 18:27:44 +0800
+Date: Sun, 16 Jul 2023 20:42:16 +0800
 Subject: [PATCH] Add config keys for fixes
 
 
@@ -27,7 +27,7 @@ index 69a9dc0aa53d4bf1ae841db9354b377dafedab8d..f6fc37663b95c4384295f8b269b81026
              }
              //Molia end
 diff --git a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
-index ea1290e681549f9c8446cc0e64c727ee3e76ab41..8fee6ba052056bb420cc35f184a56ba9a5cb91fc 100644
+index bd8f68a04fc119264d55a8857034b39846fb89f2..ad709a551125faa46c9e069f0e7797cc9a327b48 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
 @@ -9,6 +9,7 @@ import io.papermc.paper.world.ChunkEntitySlices;
@@ -38,13 +38,12 @@ index ea1290e681549f9c8446cc0e64c727ee3e76ab41..8fee6ba052056bb420cc35f184a56ba9
  import net.minecraft.core.BlockPos;
  import io.papermc.paper.chunk.system.ChunkSystem;
  import net.minecraft.server.level.ChunkHolder;
-@@ -511,23 +512,28 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
+@@ -511,24 +512,29 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
          TickThread.ensureTickThread(this.world, entity.sectionX, entity.sectionZ, "Cannot move entity off-main");
          final ChunkEntitySlices old = this.getChunk(entity.sectionX, entity.sectionZ); //Molia - Move up
  
 -        if(!TickThread.isTickThreadFor(this.world,newSectionX,newSectionZ)){
--            boolean teleportAsyncTask;
--            while(!(teleportAsyncTask = entity.teleportAsync(
+-            entity.teleportAsync(
 -                    this.world,
 -                    entity.getPosition(),
 -                    entity.getYRot(),
@@ -53,17 +52,18 @@ index ea1290e681549f9c8446cc0e64c727ee3e76ab41..8fee6ba052056bb420cc35f184a56ba9
 -                    PlayerTeleportEvent.TeleportCause.UNKNOWN,
 -                    Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS,
 -                    null
--            )));
+-            );
 -            //Paper's logic
 -            if (!old.removeEntity(entity,entity.sectionY)){
 -                LOGGER.warn("Could not remove entity " + entity + " from its old chunk section (" + entity.sectionX + "," + entity.sectionY + "," + entity.sectionZ + ") since it was not contained in the section");
 -            }
 -            return this.getOrCreateChunk(newSectionX, newSectionZ);
+-        }
+-        //Molia end
 +        //Add config for this
-+        if (MoliaConfig.fixMoveEntityOffMain){
-+            if(!TickThread.isTickThreadFor(this.world,newSectionX,newSectionZ)){
-+                boolean teleportAsyncTask;
-+                while(!(teleportAsyncTask = entity.teleportAsync(
++        if (MoliaConfig.fixMoveEntityOffMain) {
++            if (!TickThread.isTickThreadFor(this.world, newSectionX, newSectionZ)) {
++                entity.teleportAsync(
 +                        this.world,
 +                        entity.getPosition(),
 +                        entity.getYRot(),
@@ -72,17 +72,19 @@ index ea1290e681549f9c8446cc0e64c727ee3e76ab41..8fee6ba052056bb420cc35f184a56ba9
 +                        PlayerTeleportEvent.TeleportCause.UNKNOWN,
 +                        Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS,
 +                        null
-+                )));
++                );
 +                //Paper's logic
-+                if (!old.removeEntity(entity,entity.sectionY)){
++                if (!old.removeEntity(entity, entity.sectionY)) {
 +                    LOGGER.warn("Could not remove entity " + entity + " from its old chunk section (" + entity.sectionX + "," + entity.sectionY + "," + entity.sectionZ + ") since it was not contained in the section");
 +                }
 +                return this.getOrCreateChunk(newSectionX, newSectionZ);
 +            }
++            //Molia end
 +        }else{
 +            TickThread.ensureTickThread(this.world,newSectionX,newSectionZ,"Cannot move entity off-main");
-         }
-         //Molia end
++        }
+ 
+         final ChunkEntitySlices slices = this.getOrCreateChunk(newSectionX, newSectionZ);
  
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
 index 95fe40b7003a92d83787ed92e829c9d28d5dd54c..37b8b08c541fc75a047a8a18a7c007caa6881d5b 100644

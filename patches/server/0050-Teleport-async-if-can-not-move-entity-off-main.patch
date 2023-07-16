@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MrHua269 <wangxyper@163.com>
-Date: Sun, 16 Jul 2023 18:16:18 +0800
+Date: Sun, 16 Jul 2023 20:39:42 +0800
 Subject: [PATCH] Teleport async if can not move entity off main
 
 
 diff --git a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
-index 3208d68c0e8220307028acd4bcd859465611f992..ea1290e681549f9c8446cc0e64c727ee3e76ab41 100644
+index 3208d68c0e8220307028acd4bcd859465611f992..bd8f68a04fc119264d55a8857034b39846fb89f2 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/entity/EntityLookup.java
 @@ -26,6 +26,7 @@ import net.minecraft.world.level.entity.LevelEntityGetter;
@@ -24,7 +24,7 @@ index 3208d68c0e8220307028acd4bcd859465611f992..ea1290e681549f9c8446cc0e64c727ee
  import java.util.concurrent.locks.StampedLock;
  import java.util.function.Consumer;
  import java.util.function.Predicate;
-@@ -501,13 +503,34 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
+@@ -501,13 +503,33 @@ public final class EntityLookup implements LevelEntityGetter<Entity> {
              return null;
          }
  
@@ -38,8 +38,7 @@ index 3208d68c0e8220307028acd4bcd859465611f992..ea1290e681549f9c8446cc0e64c727ee
 +        final ChunkEntitySlices old = this.getChunk(entity.sectionX, entity.sectionZ); //Molia - Move up
 +
 +        if(!TickThread.isTickThreadFor(this.world,newSectionX,newSectionZ)){
-+            boolean teleportAsyncTask;
-+            while(!(teleportAsyncTask = entity.teleportAsync(
++            entity.teleportAsync(
 +                    this.world,
 +                    entity.getPosition(),
 +                    entity.getYRot(),
@@ -48,7 +47,7 @@ index 3208d68c0e8220307028acd4bcd859465611f992..ea1290e681549f9c8446cc0e64c727ee
 +                    PlayerTeleportEvent.TeleportCause.UNKNOWN,
 +                    Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS,
 +                    null
-+            )));
++            );
 +            //Paper's logic
 +            if (!old.removeEntity(entity,entity.sectionY)){
 +                LOGGER.warn("Could not remove entity " + entity + " from its old chunk section (" + entity.sectionX + "," + entity.sectionY + "," + entity.sectionZ + ") since it was not contained in the section");
