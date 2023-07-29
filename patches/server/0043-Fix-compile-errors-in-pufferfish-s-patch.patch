@@ -5,10 +5,10 @@ Subject: [PATCH] Fix compile errors in pufferfish's patch
 
 
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index ef25ddfa98e05c1a0d75efa39face8dc0a2bdc18..a2c0f214e70cc51c56e4a1e6703a64f53853dd62 100644
+index 8f2738d3402a4fdf3030d5fa9a867877ad7fafa0..e5dbb9b578efe80d5da6c04cc26fdd0235deb665 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -946,7 +946,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -973,7 +973,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
      private final ThreadLocal<io.papermc.paper.util.math.ThreadUnsafeRandom> randomTickRandom = ThreadLocal.withInitial(() -> new io.papermc.paper.util.math.ThreadUnsafeRandom(this.random.nextLong())); // Folia - region threading
      // Paper end
  

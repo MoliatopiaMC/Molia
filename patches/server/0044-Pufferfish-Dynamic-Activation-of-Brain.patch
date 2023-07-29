@@ -56,10 +56,10 @@ index 8ed23e6a42aea14b1ce572637a7bf200dffa9c48..3573e3646eed8d697f1f5041308864f4
  
          disableFoliaPluginCheck = getBoolean("unsafe.disable_folia_plugin_check",disableFoliaPluginCheck);
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index a2c0f214e70cc51c56e4a1e6703a64f53853dd62..0938135a4532a8ca8b2816e52513683ee83f96b3 100644
+index e5dbb9b578efe80d5da6c04cc26fdd0235deb665..5855d9216f006bf6d3c5b72a95e29328ad08e9f8 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -825,6 +825,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -852,6 +852,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
              org.spigotmc.ActivationRange.activateEntities(this); // Spigot
              timings.entityTick.startTiming(); // Spigot
              regionizedWorldData.forEachTickingEntity((entity) -> { // Folia - regionised ticking
@@ -68,7 +68,7 @@ index a2c0f214e70cc51c56e4a1e6703a64f53853dd62..0938135a4532a8ca8b2816e52513683e
                      if (false && this.shouldDiscardEntity(entity)) { // CraftBukkit - We prevent spawning in general, so this butchering is not needed
                          entity.discard();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index ad1d7cf5ada801e6d2289e48df96d87a8f0b72bb..36b5b48d8129420dfc267c8e85efd3c4e19b4f21 100644
+index 7a7a2b6fcf211d2a81365139f66fb7aaa8a3b61e..69b7b64d31c83b50ce6a80ca3272f90ada7e54fc 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -24,6 +24,8 @@ import java.util.function.BiConsumer;

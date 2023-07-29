@@ -17,10 +17,10 @@ index 9c0e9cccba6cdbcd003e0fbe5ca1ac7a89846769..593463d540d69c3221d786b6862c8b14
              boolean flag1 = level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) != 0L && this.level.getRedstoneGameTime() % level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) == 0L; // CraftBukkit // Folia - region threading
  
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 042ca6b3faae5249210567f2c26dff404974e1ff..ef25ddfa98e05c1a0d75efa39face8dc0a2bdc18 100644
+index cf8f93734121e5c1959959f0ba13ee4e6db31959..8f2738d3402a4fdf3030d5fa9a867877ad7fafa0 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -946,6 +946,8 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -973,6 +973,8 @@ public class ServerLevel extends Level implements WorldGenLevel {
      private final ThreadLocal<io.papermc.paper.util.math.ThreadUnsafeRandom> randomTickRandom = ThreadLocal.withInitial(() -> new io.papermc.paper.util.math.ThreadUnsafeRandom(this.random.nextLong())); // Folia - region threading
      // Paper end
  
@@ -29,7 +29,7 @@ index 042ca6b3faae5249210567f2c26dff404974e1ff..ef25ddfa98e05c1a0d75efa39face8dc
      public void tickChunk(LevelChunk chunk, int randomTickSpeed) {
          io.papermc.paper.util.math.ThreadUnsafeRandom randomTickRandom = this.randomTickRandom.get(); // Folia - region threading
          ChunkPos chunkcoordintpair = chunk.getPos();
-@@ -957,7 +959,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -984,7 +986,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
          gameprofilerfiller.push("thunder");
          final BlockPos.MutableBlockPos blockposition = this.chunkTickMutablePosition.get(); // Paper - use mutable to reduce allocation rate, final to force compile fail on change // Folia - region threading
  
@@ -38,7 +38,7 @@ index 042ca6b3faae5249210567f2c26dff404974e1ff..ef25ddfa98e05c1a0d75efa39face8dc
              blockposition.set(this.findLightningTargetAround(this.getBlockRandomPos(j, 0, k, 15))); // Paper
              if (this.isRainingAt(blockposition)) {
                  DifficultyInstance difficultydamagescaler = this.getCurrentDifficultyAt(blockposition);
-@@ -988,7 +990,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -1015,7 +1017,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
          int l;
          int i1;
  
