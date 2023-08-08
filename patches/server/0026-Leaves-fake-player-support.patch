@@ -84,7 +84,7 @@ index acc49f66bf34e2507d0ee6fec0a56b11bfc68f46..7fc87841fd72fc9b5bca4fbdffd378c7
          AdvancementProgress advancementprogress = this.getOrStartProgress(advancement);
          boolean flag1 = advancementprogress.isDone();
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index febd0ba72922462364eb65243640dcb693129e21..d1f9a49a97792815109fcd655cb34a1c8968b5d4 100644
+index c0ad878cd29e2f72b7899d9539031b15ccbf6193..046af13d4cb51d0af63eecbe71e13cb8e5b0e619 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -185,6 +185,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
@@ -95,7 +95,7 @@ index febd0ba72922462364eb65243640dcb693129e21..d1f9a49a97792815109fcd655cb34a1c
  // CraftBukkit end
  
  public class ServerPlayer extends Player {
-@@ -1705,6 +1706,13 @@ public class ServerPlayer extends Player {
+@@ -1704,6 +1705,13 @@ public class ServerPlayer extends Player {
                  this.lastSentHealth = -1.0F;
                  this.lastSentFood = -1;
  

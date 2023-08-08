@@ -5,7 +5,7 @@ Subject: [PATCH] Pufferfish Dynamic Activation of Brain
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 8ed23e6a42aea14b1ce572637a7bf200dffa9c48..3573e3646eed8d697f1f5041308864f46a913245 100644
+index adcd3f1fee51d37a4ebd308d5d6ad84a9b180cc2..b79af823b9dfe2e571efedf9e95b6eb0712f386c 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
 @@ -1,5 +1,7 @@
@@ -16,7 +16,7 @@ index 8ed23e6a42aea14b1ce572637a7bf200dffa9c48..3573e3646eed8d697f1f5041308864f4
  import org.bukkit.configuration.InvalidConfigurationException;
  import org.bukkit.configuration.file.YamlConfiguration;
  
-@@ -36,11 +38,23 @@ public class MoliaConfig {
+@@ -34,11 +36,23 @@ public class MoliaConfig {
      public static int fakePlayerSizeLimit = 20;
      public static boolean alwaysSendFakePlayerData = true;
      public static boolean canFakePlayerInteract = true;
@@ -41,9 +41,9 @@ index 8ed23e6a42aea14b1ce572637a7bf200dffa9c48..3573e3646eed8d697f1f5041308864f4
      public static void init(){
          try {
              configEntry.load(CONFIG_FILE);
-@@ -57,6 +71,13 @@ public class MoliaConfig {
-         maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
-         maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
+@@ -53,6 +67,13 @@ public class MoliaConfig {
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         acquirePoiForStuckEntity = getInt("optimizations.acquire_poi_for_stuck_entity",acquirePoiForStuckEntity);
  
 +        dearEnabled = getBoolean("optimizations.dab.enabled",true);
 +        startDistanceSquared = getInt("optimizations.dab.start_distance",12) ^ 2;
@@ -56,7 +56,7 @@ index 8ed23e6a42aea14b1ce572637a7bf200dffa9c48..3573e3646eed8d697f1f5041308864f4
  
          disableFoliaPluginCheck = getBoolean("unsafe.disable_folia_plugin_check",disableFoliaPluginCheck);
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index e5dbb9b578efe80d5da6c04cc26fdd0235deb665..5855d9216f006bf6d3c5b72a95e29328ad08e9f8 100644
+index cf8f93734121e5c1959959f0ba13ee4e6db31959..e6e42003308c7fc9737cb6d51ffae1d13af2e9e4 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -852,6 +852,7 @@ public class ServerLevel extends Level implements WorldGenLevel {

@@ -27,10 +27,10 @@ index 69a9dc0aa53d4bf1ae841db9354b377dafedab8d..f6fc37663b95c4384295f8b269b81026
              }
              //Molia end
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 95fe40b7003a92d83787ed92e829c9d28d5dd54c..37b8b08c541fc75a047a8a18a7c007caa6881d5b 100644
+index 806a9c820d059b8879f924a7644801bdcb7ea647..e4830d31344e064d1cf709e3bf70b34de2db3a57 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
-@@ -21,6 +21,8 @@ public class MoliaConfig {
+@@ -19,6 +19,8 @@ public class MoliaConfig {
  
      //Misc
      public static String serverModName = "Molia";
@@ -39,7 +39,7 @@ index 95fe40b7003a92d83787ed92e829c9d28d5dd54c..37b8b08c541fc75a047a8a18a7c007ca
  
      //Unsafe
      public static boolean disableFoliaPluginCheck = false;
-@@ -79,6 +81,8 @@ public class MoliaConfig {
+@@ -75,6 +77,8 @@ public class MoliaConfig {
          prepareForDAB();
  
          serverModName = getString("misc.server_mod_name","Molia");

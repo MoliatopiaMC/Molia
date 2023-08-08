@@ -5,10 +5,10 @@ Subject: [PATCH] Add config for sand duping
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 8b903569e38dcae1951c6243a0f4b8e4f609bf92..18d4bd7e3cf020f80ebcd0d4ed0635dbecd5f436 100644
+index 2b4d48e41c5df971bad1492f3d7c7b2b14a7b0f0..24b9a555f4de81373a49e0a436f1701cd6d4ad44 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
-@@ -34,6 +34,7 @@ public class MoliaConfig {
+@@ -32,6 +32,7 @@ public class MoliaConfig {
      public static String pcaSyncPlayerEntity = "NOBODY";
      public static boolean enableXeroMapProtocol = false;
      public static int xeroServerId = 1;
@@ -16,7 +16,7 @@ index 8b903569e38dcae1951c6243a0f4b8e4f609bf92..18d4bd7e3cf020f80ebcd0d4ed0635db
  
      //Fake player
      public static boolean enableFakePlayerSkipSleep = true;
-@@ -83,6 +84,7 @@ public class MoliaConfig {
+@@ -79,6 +80,7 @@ public class MoliaConfig {
          pcaSyncPlayerEntity = getString("gameplay.pca_sync_player_entity",pcaSyncPlayerEntity);
          enableXeroMapProtocol = getBoolean("gameplay.enable_xero_map_protocol",enableXeroMapProtocol);
          xeroServerId = getInt("gameplay.xero_server_id",1);

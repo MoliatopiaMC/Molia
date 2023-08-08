@@ -5,10 +5,10 @@ Subject: [PATCH] Adjust config init call
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 37b8b08c541fc75a047a8a18a7c007caa6881d5b..8b903569e38dcae1951c6243a0f4b8e4f609bf92 100644
+index e4830d31344e064d1cf709e3bf70b34de2db3a57..2b4d48e41c5df971bad1492f3d7c7b2b14a7b0f0 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
-@@ -57,16 +57,7 @@ public class MoliaConfig {
+@@ -55,16 +55,7 @@ public class MoliaConfig {
          }
      }
  
@@ -26,7 +26,7 @@ index 37b8b08c541fc75a047a8a18a7c007caa6881d5b..8b903569e38dcae1951c6243a0f4b8e4
          checkStuckInWallInterval = getLong("optimizations.check_stuck_in_wall_interval",checkStuckInWallInterval);
          entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
          acquirePoiForStuckEntity = getInt("optimizations.acquire_poi_for_stuck_entity",acquirePoiForStuckEntity);
-@@ -98,6 +89,18 @@ public class MoliaConfig {
+@@ -94,6 +85,18 @@ public class MoliaConfig {
          alwaysSendFakePlayerData = getBoolean("fakeplayer.always_send_fake_player_data",alwaysSendFakePlayerData);
          canFakePlayerInteract = getBoolean("fakeplayer.can_fake_player_interact",canFakePlayerInteract);
          fakePlayerResident = getBoolean("fakeplayer.fake_player_resident", fakePlayerResident);

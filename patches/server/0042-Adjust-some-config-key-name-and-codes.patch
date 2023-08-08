@@ -5,10 +5,10 @@ Subject: [PATCH] Adjust some config key name and codes
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 3573e3646eed8d697f1f5041308864f46a913245..b8323b7af2a695904c2008dc3c1fa13b390a3b39 100644
+index b79af823b9dfe2e571efedf9e95b6eb0712f386c..6f5ac14f8534b3325da742382bdfa88a474a5a16 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
-@@ -93,7 +93,7 @@ public class MoliaConfig {
+@@ -89,7 +89,7 @@ public class MoliaConfig {
          fakePlayerSizeLimit = getInt("fakeplayer.fake_player_size_limit",fakePlayerSizeLimit);
          alwaysSendFakePlayerData = getBoolean("fakeplayer.always_send_fake_player_data",alwaysSendFakePlayerData);
          canFakePlayerInteract = getBoolean("fakeplayer.can_fake_player_interact",canFakePlayerInteract);
