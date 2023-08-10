@@ -5,7 +5,7 @@ Subject: [PATCH] Compile error fixes
 
 
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 7f53e93edf39a9882fd7c39fe7d555570e6f2af1..a1e699fe58c0c9a270a348ee85a53d3cbc609a8a 100644
+index 1f22962ae20911edef4adbc28a4aa71e357325f4..0a85dfa794c16546704d87d814a4a8eafbb8bcf6 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -29,6 +29,8 @@ import java.util.function.UnaryOperator;
@@ -17,7 +17,7 @@ index 7f53e93edf39a9882fd7c39fe7d555570e6f2af1..a1e699fe58c0c9a270a348ee85a53d3c
  import net.minecraft.ChatFormatting;
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
-@@ -3601,10 +3603,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
+@@ -3675,10 +3677,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
          } else {
              // Leaves start - leaves extra protocol
              try {
@@ -31,7 +31,7 @@ index 7f53e93edf39a9882fd7c39fe7d555570e6f2af1..a1e699fe58c0c9a270a348ee85a53d3c
                  }
              } catch (Exception ex) {
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
-index 4925d29d4113760ad0b81d394fc1a1795a2d6a13..357ef5d34646e40e72969b5a441c84292f2c86af 100644
+index 59e9b446eb59d903ebe133f1c9a76bf41bbdc8dc..4fb423c6f30ac8fb432319425850bba907ef15c3 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
 @@ -182,7 +182,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen

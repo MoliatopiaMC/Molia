@@ -84,7 +84,7 @@ index acc49f66bf34e2507d0ee6fec0a56b11bfc68f46..7fc87841fd72fc9b5bca4fbdffd378c7
          AdvancementProgress advancementprogress = this.getOrStartProgress(advancement);
          boolean flag1 = advancementprogress.isDone();
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index c0ad878cd29e2f72b7899d9539031b15ccbf6193..046af13d4cb51d0af63eecbe71e13cb8e5b0e619 100644
+index cf18ea69915fd195e1ea4b8840d528a643ff8b8a..65d9cc2c90fe47e4902af0966b8d06d2d0ab4edc 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -185,6 +185,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
@@ -110,7 +110,7 @@ index c0ad878cd29e2f72b7899d9539031b15ccbf6193..046af13d4cb51d0af63eecbe71e13cb8
                  PlayerChangedWorldEvent changeEvent = new PlayerChangedWorldEvent(this.getBukkitEntity(), worldserver1.getWorld());
                  this.level().getCraftServer().getPluginManager().callEvent(changeEvent);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index ffb5332310e9b2d10292fe01c37fd48552fedffc..374473a85a1384a428612b89e9c767cfaf3ff397 100644
+index 86b9d57f2c0132b8ac30045e766c01f314d3b6f3..0d8e1d08e44752a5462a6f2d7f52393cab6b6b79 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -81,6 +81,7 @@ import net.minecraft.server.ServerScoreboard;
@@ -171,7 +171,7 @@ index ffb5332310e9b2d10292fe01c37fd48552fedffc..374473a85a1384a428612b89e9c767cf
          return astring;
      }
  
-@@ -1665,4 +1687,16 @@ public abstract class PlayerList {
+@@ -1680,4 +1702,16 @@ public abstract class PlayerList {
      public boolean isAllowCheatsForAllPlayers() {
          return this.allowCheatsForAllPlayers;
      }

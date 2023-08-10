@@ -5,10 +5,10 @@ Subject: [PATCH] KeYi Player skull api
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 66f4e0578e7682d732ba4b36f5c3344d1d0e3d68..e92fddd6f4540a7516a38109d973e5609043df91 100644
+index 36fc7444514a82532731026a0c4402d2ec04e9d2..32209188489beb23ad932c4c735f53180a70f4a8 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-@@ -27,6 +27,9 @@ import java.util.Optional;
+@@ -29,6 +29,9 @@ import java.util.Optional;
  import java.util.Set;
  import java.util.UUID;
  import java.util.WeakHashMap;
@@ -18,7 +18,7 @@ index 66f4e0578e7682d732ba4b36f5c3344d1d0e3d68..e92fddd6f4540a7516a38109d973e560
  import java.util.logging.Level;
  import java.util.logging.Logger;
  import javax.annotation.Nullable;
-@@ -162,6 +165,7 @@ import org.bukkit.event.player.PlayerUnregisterChannelEvent;
+@@ -164,6 +167,7 @@ import org.bukkit.event.player.PlayerUnregisterChannelEvent;
  import org.bukkit.inventory.EquipmentSlot;
  import org.bukkit.inventory.InventoryView.Property;
  import org.bukkit.inventory.ItemStack;
@@ -26,7 +26,7 @@ index 66f4e0578e7682d732ba4b36f5c3344d1d0e3d68..e92fddd6f4540a7516a38109d973e560
  import org.bukkit.map.MapCursor;
  import org.bukkit.map.MapView;
  import org.bukkit.metadata.MetadataValue;
-@@ -3192,4 +3196,28 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -3224,4 +3228,28 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
          return this.spigot;
      }
      // Spigot end

@@ -5,7 +5,7 @@ Subject: [PATCH] Leaves Utils
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index efa4c15d9ace518079264335d3247778aca78aba..87434584bc03befd895246112df647e1523d93e6 100644
+index e228edaef0a4c280f0e74b917f32c3eb9335f4b5..c03678772dd283d203d59be31a333710cc46e3df 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -417,6 +417,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -16,7 +16,7 @@ index efa4c15d9ace518079264335d3247778aca78aba..87434584bc03befd895246112df647e1
  
      public void setOrigin(@javax.annotation.Nonnull Location location) {
          this.origin = location.toVector();
-@@ -2443,6 +2444,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2442,6 +2443,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  nbt.putBoolean("Paper.FreezeLock", true);
              }
              // Paper end
@@ -24,7 +24,7 @@ index efa4c15d9ace518079264335d3247778aca78aba..87434584bc03befd895246112df647e1
              return nbt;
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Saving entity NBT");
-@@ -2611,6 +2613,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2610,6 +2612,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  freezeLocked = nbt.getBoolean("Paper.FreezeLock");
              }
              // Paper end
@@ -36,7 +36,7 @@ index efa4c15d9ace518079264335d3247778aca78aba..87434584bc03befd895246112df647e1
  
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Loading entity NBT");
-@@ -5586,4 +5593,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -5590,4 +5597,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return ((net.minecraft.server.level.ServerChunkCache) level.getChunkSource()).isPositionTicking(this);
      }
      // Paper end

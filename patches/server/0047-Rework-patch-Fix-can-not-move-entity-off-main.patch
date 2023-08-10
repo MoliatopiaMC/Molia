@@ -5,7 +5,7 @@ Subject: [PATCH] Rework patch Fix can not move entity off main
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 69b7b64d31c83b50ce6a80ca3272f90ada7e54fc..69100a3fa3907e99be1188d110a07f511b662ed2 100644
+index 05bf20e2765e5fb6f32b81cfdec5ea2f47f3c959..2310f588943e8885612a5e807ebcb0330309c072 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
@@ -16,7 +16,7 @@ index 69b7b64d31c83b50ce6a80ca3272f90ada7e54fc..69100a3fa3907e99be1188d110a07f51
  import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
  import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
  import java.util.Arrays;
-@@ -1129,7 +1130,21 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1128,7 +1129,21 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                      }
                  }
  

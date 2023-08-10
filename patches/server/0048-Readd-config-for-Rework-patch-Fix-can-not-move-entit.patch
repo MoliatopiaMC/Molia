@@ -6,10 +6,10 @@ Subject: [PATCH] Readd config for Rework patch Fix can not move entity off
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 69100a3fa3907e99be1188d110a07f511b662ed2..0ef83ea94f2fc8156c60b14adbfb76b798df654c 100644
+index 2310f588943e8885612a5e807ebcb0330309c072..f5ef2b0deaea62a2333ca0690d09af0317243f25 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -1130,18 +1130,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1129,18 +1129,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                      }
                  }
  

@@ -5,7 +5,7 @@ Subject: [PATCH] Setup and rebrand
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 93f9abd2169a48a4fd32f712c68be7b49b034e83..fcbfdd2bd5e2abbc9d42e3cc73c842d75b73f5b6 100644
+index 9ee90bc753e65f9dd532f28ec75cc16bf16486c8..f42dbf797dddc14324ee720c2aefc0310f6ac82e 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -14,7 +14,7 @@ val alsoShade: Configuration by configurations.creating
@@ -27,7 +27,7 @@ index 93f9abd2169a48a4fd32f712c68be7b49b034e83..fcbfdd2bd5e2abbc9d42e3cc73c842d7
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
 diff --git a/src/main/java/com/destroystokyo/paper/Metrics.java b/src/main/java/com/destroystokyo/paper/Metrics.java
-index 58dc84b7b3b04c2d0b00fc5fac5303d3378b3467..31f46f5090bc59b077ba07a484087527ce1d42df 100644
+index cb60d58d4a7556dd896f31d0cd249f860bb3ef84..92b98d808cc5a0c3eed87ff02af55d2676ab6cd5 100644
 --- a/src/main/java/com/destroystokyo/paper/Metrics.java
 +++ b/src/main/java/com/destroystokyo/paper/Metrics.java
 @@ -593,7 +593,7 @@ public class Metrics {
@@ -86,10 +86,10 @@ index 355acd1dd3b2e9f2a086a8d95928cdebbf63d06f..5e23e9e877f02b44e54a4dc2e87255b6
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 23556931a812ed9b2dac5b4b4712961c2d9aa025..3ce2ebeaf07a17a25ae16a42f5f98a91d530cacb 100644
+index 9485d754ec6ce4031d88734e327abda240d9db90..ed3b14dfdecabc42cc26e7ec450912e0da69ac16 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -264,7 +264,7 @@ import javax.annotation.Nullable; // Paper
+@@ -265,7 +265,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {
