@@ -5,10 +5,10 @@ Subject: [PATCH] Fix my stupid logic
 
 
 diff --git a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
-index 8f5cfd0d20e00614e4c96f64e3f8cd94a12e6a28..48b241b4f7f08f4fb6e01ed6a606a1f2bf5466b9 100644
+index 50ec33b6b030ca7e2dbfbbfead7690ad6eeb1947..503140dc85f4b9347cbcb8aa7c8d37ce76ca05a8 100644
 --- a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
 +++ b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
-@@ -143,7 +143,7 @@ public class ServerBot extends ServerPlayer {
+@@ -139,7 +139,7 @@ public class ServerBot extends ServerPlayer {
              return;
          }
          if (skinName != null) {
