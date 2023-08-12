@@ -1,0 +1,74 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sat, 12 Aug 2023 10:06:17 +0800
+Subject: [PATCH] Gale Skip unnecessary mob spawning computations
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
+index e5dded0363b14608e834e63e678563b1423d66e7..14e6bc3586e54df762e3aad07f03bd24c527e95a 100644
+--- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
++++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
+@@ -519,6 +519,11 @@ public class ServerChunkCache extends ChunkSource {
+             boolean flag1 = level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) != 0L && this.level.getRedstoneGameTime() % level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) == 0L; // CraftBukkit // Folia - region threading
+ 
+             gameprofilerfiller.push("naturalSpawnCount");
++            // Gale start - MultiPaper - skip unnecessary mob spawning computations
++            boolean flag2 = this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING) && !this.level.players().isEmpty(); // CraftBukkit
++            boolean flag2AndHasNaturalSpawn = flag2 && this.anySpawnCategoryIsSpawnedThisTick();
++            if (flag2AndHasNaturalSpawn) {
++                // Gale end - MultiPaper - skip unnecessary mob spawning computations
+             this.level.timings.countNaturalMobs.startTiming(); // Paper - timings
+             int l = this.distanceManager.getNaturalSpawnChunkCount();
+             // Paper start - per player mob spawning
+@@ -529,6 +534,11 @@ public class ServerChunkCache extends ChunkSource {
+             this.level.timings.countNaturalMobs.stopTiming(); // Paper - timings
+ 
+             regionizedWorldData.lastSpawnState = spawnercreature_d; // Folia - region threading
++                // Gale start - MultiPaper - skip unnecessary mob spawning computations
++            } else {
++                regionizedWorldData.lastSpawnState = null;
++            }
++            // Gale end - MultiPaper - skip unnecessary mob spawning computations
+             gameprofilerfiller.popPush("filteringLoadedChunks");
+             // Paper - moved down
+             this.level.timings.chunkTicks.startTiming(); // Paper
+@@ -536,7 +546,6 @@ public class ServerChunkCache extends ChunkSource {
+             // Paper - moved down
+ 
+             gameprofilerfiller.popPush("spawnAndTick");
+-            boolean flag2 = this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING) && !regionizedWorldData.getLocalPlayers().isEmpty(); // CraftBukkit // Folia - region threading
+ 
+             // Paper - only shuffle if per-player mob spawning is disabled
+             // Paper - moved natural spawn event up
+@@ -567,8 +576,8 @@ public class ServerChunkCache extends ChunkSource {
+ 
+                 if ((true || this.level.isNaturalSpawningAllowed(chunkcoordintpair)) && this.chunkMap.anyPlayerCloseEnoughForSpawning(holder, chunkcoordintpair, false)) { // Paper - optimise anyPlayerCloseEnoughForSpawning // Paper - the chunk is known ticking
+                     chunk1.incrementInhabitedTime(j);
+-                    if (flag2 && (this.spawnEnemies || this.spawnFriendlies) && this.level.getWorldBorder().isWithinBounds(chunkcoordintpair) && this.chunkMap.anyPlayerCloseEnoughForSpawning(holder, chunkcoordintpair, true)) { // Spigot // Paper - optimise anyPlayerCloseEnoughForSpawning & optimise chunk tick iteration
+-                        NaturalSpawner.spawnForChunk(this.level, chunk1, spawnercreature_d, this.spawnFriendlies, this.spawnEnemies, flag1);
++                    if (flag2AndHasNaturalSpawn && (this.spawnEnemies || this.spawnFriendlies) && this.level.getWorldBorder().isWithinBounds(chunkcoordintpair) && this.chunkMap.anyPlayerCloseEnoughForSpawning(holder, chunkcoordintpair, true)) { // Spigot // Paper - optimise anyPlayerCloseEnoughForSpawning & optimise chunk tick iteration // Gale - MultiPaper - skip unnecessary mob spawning computations
++                        NaturalSpawner.spawnForChunk(this.level, chunk1, regionizedWorldData.lastSpawnState, this.spawnFriendlies, this.spawnEnemies, flag1);
+                     }
+ 
+                     if (true || this.level.shouldTickBlocksAt(chunkcoordintpair.toLong())) { // Paper - the chunk is known ticking
+@@ -637,6 +646,20 @@ public class ServerChunkCache extends ChunkSource {
+         }
+     }
+ 
++    // Gale start - MultiPaper - skip unnecessary mob spawning computations
++    public boolean anySpawnCategoryIsSpawnedThisTick() {
++        long gameTime = this.level.getLevelData().getGameTime();
++
++        for (long ticksForSpawnCategory : this.level.ticksPerSpawnCategory.values()) {
++            if (ticksForSpawnCategory != 0L && gameTime % ticksForSpawnCategory == 0L) {
++                return true;
++            }
++        }
++
++        return false;
++    }
++    // Gale end - MultiPaper - skip unnecessary mob spawning computations
++
+     private void getFullChunk(long pos, Consumer<LevelChunk> chunkConsumer) {
+         ChunkHolder playerchunk = this.getVisibleChunkIfPresent(pos);
+ 

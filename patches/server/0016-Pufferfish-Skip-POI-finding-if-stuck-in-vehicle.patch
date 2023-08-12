@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sat, 12 Aug 2023 10:29:43 +0800
+Subject: [PATCH] Pufferfish Skip POI finding if stuck in vehicle
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java b/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+index ef5ec638bcd88df6eb93746868e863dbe0d11677..26f554591799bb2130e098aaa0340c84e4daa78b 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+@@ -47,6 +47,7 @@ public class AcquirePoi {
+                         return false;
+                     } else {
+                         mutableLong.setValue(time + 20L + (long)world.getRandom().nextInt(20));
++                        if (entity.getNavigation().isStuck()) mutableLong.add(200); // Pufferfish - wait an additional 10s to check again if they're stuck
+                         PoiManager poiManager = world.getPoiManager();
+                         long2ObjectMap.long2ObjectEntrySet().removeIf((entry) -> {
+                             return !entry.getValue().isStillValid(time);
