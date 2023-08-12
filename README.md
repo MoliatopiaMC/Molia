@@ -1,10 +1,10 @@
 ## Molia
 
-<h5>Molia is a drop-in replacement for <a href="https://github.com/PaperMC/Folia">Folia</a> servers designed for bukkit plugins and customize, and performance built on top of <a href="https://github.com/PaperMC/Folia">Folia</a>.</h5>
+<h5>Molia is a drop-in replacement for <a href="https://github.com/KaiijuMC/Kaiiju">Kaiiju</a> servers designed for bukkit plugins and customize, and performance built on top of <a href="https://github.com/KaiijuMC/Kaiiju">Kaiiju</a>.</h5>
 </div>
 
 ## Features
-- Fork of [Folia](https://github.com/PaperMC/Folia) for better performance.
+- Fork of [Kaiiju](https://github.com/KaiijuMC/Kaiiju) for better performance.
 - Micro-optimizations
 - Variable entity wake-up
 - Bukkit plugins support(May cause some problems)(unsafe)
@@ -35,10 +35,9 @@ Yes, this also includes all API provided by Paper, Spigot, and Bukkit.
 
 Credits:
 -------------
-- [Folia](https://github.com/PaperMC/Folia)
+- [Kaiiju](https://github.com/KaiijuMC/Kaiiju)
 - [Gale](https://github.com/GaleMC/Gale)
 - [Pufferfish](https://github.com/pufferfish-gg/pufferfish/)
-- KeYi(R.I.P)
 - [Leaves](https://github.com/LeavesMC/Leaves)
 
 ## Attention
