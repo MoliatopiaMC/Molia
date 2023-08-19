@@ -7,7 +7,6 @@
 - Fork of [Kaiiju](https://github.com/KaiijuMC/Kaiiju) for better performance.
 - Micro-optimizations
 - Variable entity wake-up
-- Bukkit plugins support(May cause some problems)(unsafe)
   
 ## Downloads
 
@@ -41,4 +40,5 @@ Credits:
 - [Leaves](https://github.com/LeavesMC/Leaves)
 
 ## Attention
-The supports of bukkit plugin are unsafe,Think twice before you adding bukkit plugins.This fork is just written for personal needs
+If you want to run with bukkit plugins,Please visit the repo of dirtymolia
+
