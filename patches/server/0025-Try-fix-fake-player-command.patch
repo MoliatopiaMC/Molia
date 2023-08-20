@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Sun, 20 Aug 2023 12:43:19 +0800
+Subject: [PATCH] Try fix fake player command
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 3061d68a2901a559d609d286c3e13710a859a8dd..7559e0527c0a5590c4e67c2fede8d0d8d9503634 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -2,6 +2,7 @@ package me.earthme.molia;
+ 
+ import com.google.common.collect.Lists;
+ import net.minecraft.core.registries.BuiltInRegistries;
++import net.minecraft.server.MinecraftServer;
+ import net.minecraft.world.entity.EntityType;
+ import org.bukkit.Bukkit;
+ import org.bukkit.configuration.InvalidConfigurationException;
+@@ -48,7 +49,7 @@ public class MoliaConfig {
+         }
+ 
+         Actions.registerAll();
+-        Bukkit.getCommandMap().register("bot","leaves",new BotCommand("bot"));
++        MinecraftServer.getServer().server.getCommandMap().register("bot","leaves",new BotCommand("bot"));
+     }
+ 
+     public static void loadOrInitAll(){
+@@ -71,9 +72,6 @@ public class MoliaConfig {
+         fakeplayerSkipSleep = getBoolean("gameplay.leaves.fakeplayer.fakeplayer_skip_sleep",fakeplayerResident);
+         openFakeplayerInventory = getBoolean("gameplay.leaves.fakeplayer.open_inventory",openFakeplayerInventory);
+         fakeplayerResident = getBoolean("gameplay.leaves.fakeplayer.fakeplayer_resident",fakeplayerResident);
+-        if (fakeplayerSupport){
+-            initFakePlayer();
+-        }
+ 
+         save();
+     }
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 95f3c3ee503aa3c8db58feb54ec4aadda65766af..c6890c81b772fe35048cdca7fab82111605ac0da 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -201,7 +201,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+             this.setPreventProxyConnections(dedicatedserverproperties.preventProxyConnections);
+             this.setLocalIp(dedicatedserverproperties.serverIp);
+         }
+-        MoliaConfig.init(); //Molia
+         // Spigot start
+         this.setPlayerList(new DedicatedPlayerList(this, this.registries(), this.playerDataStorage));
+         org.spigotmc.SpigotConfig.init((java.io.File) options.valueOf("spigot-settings"));
+@@ -236,6 +235,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         }
+         gg.pufferfish.pufferfish.simd.SIMDChecker.simdWarning();
+         dev.kaiijumc.kaiiju.KaiijuConfig.registerCommands();
++        MoliaConfig.init(); //Molia
++        MoliaConfig.initFakePlayer(); // Molia
+         // Kaiiju end
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
+         io.papermc.paper.brigadier.PaperBrigadierProviderImpl.INSTANCE.getClass(); // init PaperBrigadierProvider
