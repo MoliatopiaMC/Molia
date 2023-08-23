@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Tue, 22 Aug 2023 16:11:44 +0800
+Subject: [PATCH] Gale Don't load chunks to spawn phantoms
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 7559e0527c0a5590c4e67c2fede8d0d8d9503634..ae84d3e3c1c16ee158ea5b596f06dbbb941eb251 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -20,6 +20,7 @@ public class MoliaConfig {
+     //Optimizations
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     public static boolean enableSuffocationOptimization = true;
++    public static boolean loadChunksForPhantomSpawner = false;
+     public static boolean dabEnabled = true;
+     public static int maximumActivationPrio = 20;
+     public static int startDistanceSquared;
+@@ -56,6 +57,7 @@ public class MoliaConfig {
+         //Optimizations
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
++        loadChunksForPhantomSpawner = getBoolean("optimizations.load_chunks_for_phantom_spawner",loadChunksForPhantomSpawner);
+ 
+         //Dab
+         initDab();
+diff --git a/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java b/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
+index a127b6cbaab211d324d42b3bddcd6ebd84c250e3..0169e5b2dc45c8f0a5aa06b4ac6401afa629d79b 100644
+--- a/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
++++ b/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.world.level.levelgen;
+ 
+ import java.util.Iterator;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.server.level.ServerLevel;
+@@ -73,7 +75,15 @@ public class PhantomSpawner implements CustomSpawner {
+ 
+                                     if (randomsource.nextInt(j) >= world.paperConfig().entities.behavior.playerInsomniaStartTicks) { // Paper
+                                         BlockPos blockposition1 = blockposition.above(20 + randomsource.nextInt(15)).east(-10 + randomsource.nextInt(21)).south(-10 + randomsource.nextInt(21));
+-                                        BlockState iblockdata = world.getBlockState(blockposition1);
++                                        // Gale start - MultiPaper - don't load chunks to spawn phantoms
++                                        BlockState iblockdata;
++                                        if (MoliaConfig.loadChunksForPhantomSpawner) {
++                                            iblockdata = world.getBlockState(blockposition1);
++                                        } else {
++                                            iblockdata = world.getBlockStateIfLoaded(blockposition1);
++                                            if (iblockdata == null) continue;
++                                        }
++                                        // Gale end - MultiPaper - don't load chunks to spawn phantoms
+                                         FluidState fluid = world.getFluidState(blockposition1);
+ 
+                                         if (NaturalSpawner.isValidEmptySpawnBlock(world, blockposition1, iblockdata, fluid, EntityType.PHANTOM)) {

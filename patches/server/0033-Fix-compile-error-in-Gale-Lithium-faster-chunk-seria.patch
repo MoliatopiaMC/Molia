@@ -1,0 +1,17 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Tue, 22 Aug 2023 19:18:31 +0800
+Subject: [PATCH] Fix compile error in Gale Lithium faster chunk serialization
+
+
+diff --git a/src/main/java/net/minecraft/world/level/chunk/PaletteResize.java b/src/main/java/net/minecraft/world/level/chunk/PaletteResize.java
+index acae3eb30e0689048937f479dc3070f0688abdad..324972f6c84c13e090e0b3124e10a6f843d7b787 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/PaletteResize.java
++++ b/src/main/java/net/minecraft/world/level/chunk/PaletteResize.java
+@@ -1,5 +1,5 @@
+ package net.minecraft.world.level.chunk;
+ 
+-interface PaletteResize<T> {
++public interface PaletteResize<T> {
+     int onResize(int newBits, T object);
+ }

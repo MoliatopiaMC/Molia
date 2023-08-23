@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Tue, 22 Aug 2023 16:15:45 +0800
+Subject: [PATCH] Adjust config fields
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 689961199934eb45e5b1bb418e76a127a5f657af..d8ed8fce243bf3f434351470ce39787126b3e468 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -21,6 +21,8 @@ public class MoliaConfig {
+     public static boolean enableSuffocationOptimization = true;
+     public static boolean loadChunksForPhantomSpawner = false;
+     public static boolean loadChunksForActivatingClimbingMobs = false;
++
++    //Dab
+     public static boolean dabEnabled = true;
+     public static int maximumActivationPrio = 20;
+     public static int startDistanceSquared;

@@ -1,0 +1,270 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrHua269 <wangxyper@163.com>
+Date: Wed, 23 Aug 2023 12:10:50 +0800
+Subject: [PATCH] Added a simple tpsbar
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index d8ed8fce243bf3f434351470ce39787126b3e468..f870bb6e7049315411fab8c8d0943a9911114670 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -1,6 +1,8 @@
+ package me.earthme.molia;
+ 
+ import com.google.common.collect.Lists;
++import me.earthme.molia.commands.TpsBarCommand;
++import me.earthme.molia.functions.GlobalServerTpsBar;
+ import net.minecraft.core.registries.BuiltInRegistries;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.world.entity.EntityType;
+@@ -27,7 +29,9 @@ public class MoliaConfig {
+     public static int maximumActivationPrio = 20;
+     public static int startDistanceSquared;
+     public static int activationDistanceMod = 8;
++
+     //Gameplay
++    public static boolean tpsBarEnabled = true;
+     public static boolean fakeplayerSupport = false;
+     public static boolean alwaysSendFakeplayerData = true;
+     public static boolean fakeplayerSkipSleep = true;
+@@ -55,6 +59,15 @@ public class MoliaConfig {
+         MinecraftServer.getServer().server.getCommandMap().register("bot","leaves",new BotCommand("bot"));
+     }
+ 
++    public static void initTpsBar(){
++        if (!tpsBarEnabled){
++            return;
++        }
++
++        GlobalServerTpsBar.init();
++        MinecraftServer.getServer().server.getCommandMap().register("tpsbar","molia",new TpsBarCommand("tpsbar"));
++    }
++
+     public static void loadOrInitAll(){
+         //Optimizations
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+@@ -78,6 +91,9 @@ public class MoliaConfig {
+         openFakeplayerInventory = getBoolean("gameplay.leaves.fakeplayer.open_inventory",openFakeplayerInventory);
+         fakeplayerResident = getBoolean("gameplay.leaves.fakeplayer.fakeplayer_resident",fakeplayerResident);
+ 
++        tpsBarEnabled = getBoolean("gameplay.enable_tps_bar",tpsBarEnabled);
++        initTpsBar();
++
+         save();
+     }
+ 
+diff --git a/src/main/java/me/earthme/molia/commands/TpsBarCommand.java b/src/main/java/me/earthme/molia/commands/TpsBarCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..0458025d96bcc50c8a551cfe56ea6f9cdff2fa44
+--- /dev/null
++++ b/src/main/java/me/earthme/molia/commands/TpsBarCommand.java
+@@ -0,0 +1,40 @@
++package me.earthme.molia.commands;
++
++import me.earthme.molia.functions.GlobalServerTpsBar;
++import org.bukkit.ChatColor;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++import org.bukkit.entity.Player;
++import org.jetbrains.annotations.NotNull;
++
++public class TpsBarCommand extends Command {
++    public TpsBarCommand(@NotNull String name) {
++        super(name);
++        this.setPermission("molia.commands.tpsbar");
++        this.setDescription("Show the tps and mspt through a bossbar");
++        this.setUsage("/tpsbar");
++    }
++
++    @Override
++    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
++        if (!testPermission(sender)){
++            return true;
++        }
++
++        if (!(sender instanceof Player player)){
++            sender.sendMessage(ChatColor.RED+"Only player can use this command!");
++            return true;
++        }
++
++        if (GlobalServerTpsBar.isPlayerVisible(player)) {
++            player.sendMessage(ChatColor.BLUE + "Disabled tps bar");
++            GlobalServerTpsBar.setVisibilityForPlayer(player,false);
++            return true;
++        }
++
++        player.sendMessage(ChatColor.GREEN + "Enabled tps bar");
++        GlobalServerTpsBar.setVisibilityForPlayer(player,true);
++
++        return true;
++    }
++}
+diff --git a/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e93daefd27a831deda5faa5c596a8e3c587c03ec
+--- /dev/null
++++ b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+@@ -0,0 +1,163 @@
++package me.earthme.molia.functions;
++
++import com.google.common.collect.Lists;
++import io.papermc.paper.threadedregions.ThreadedRegionizer;
++import io.papermc.paper.threadedregions.TickData;
++import io.papermc.paper.threadedregions.TickRegions;
++import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.server.level.ServerPlayer;
++import org.bukkit.Bukkit;
++import org.bukkit.boss.BarColor;
++import org.bukkit.boss.BarStyle;
++import org.bukkit.boss.BossBar;
++import org.bukkit.craftbukkit.boss.CraftBossBar;
++import org.bukkit.craftbukkit.entity.CraftPlayer;
++import org.bukkit.craftbukkit.scheduler.MinecraftInternalPlugin;
++import org.bukkit.entity.Player;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.entity.Bot;
++
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.TimeUnit;
++
++public class GlobalServerTpsBar {
++    protected static final MinecraftInternalPlugin NULL_PLUGIN = new MinecraftInternalPlugin();
++    protected static final Map<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> bossBars = new Reference2ObjectLinkedOpenHashMap<>();
++    protected static final List<Player> visibleExclude = Lists.newCopyOnWriteArrayList();
++
++    public static void init(){
++        Bukkit.getAsyncScheduler().runAtFixedRate(NULL_PLUGIN,c -> {
++            try {
++                update();
++            }catch (Exception e){
++                e.printStackTrace();
++            }
++        },1,1, TimeUnit.SECONDS);
++    }
++
++    public static boolean isPlayerVisible(Player player){
++        return !visibleExclude.contains(player);
++    }
++
++    public static void setVisibilityForPlayer(Player target,boolean canSee){
++        if (!canSee){
++            visibleExclude.add(target);
++            return;
++        }
++
++        visibleExclude.remove(target);
++    }
++
++    private static void update(){
++        updateBarVisibilityForPlayers();
++        updateBarValues();
++    }
++
++    private static void updateBarValues(){
++        for (Map.Entry<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> entry : bossBars.entrySet()){
++            final ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData> region = entry.getKey();
++            final BossBar bossBar = entry.getValue();
++
++            final TickData.TickReportData reportData = region.getData().getRegionSchedulingHandle().getTickReport5s(System.nanoTime());
++            final TickData.SegmentData tpsData = reportData.tpsData().segmentAll();
++            final double mspt = reportData.timePerTickData().segmentAll().average() / 1.0E6;
++            updateTpsBar(tpsData.average(),mspt,bossBar);
++        }
++    }
++
++    private static void updateTpsBar(double tps, double mspt, @NotNull BossBar bar){
++        //TODO Complete it
++        bar.setTitle("TPS: "+tps+" MSPT:"+mspt);
++        bar.setColor(barColorFromTps(tps));
++        bar.setProgress(Math.min(mspt / 50,1.0));
++    }
++
++    private static BarColor barColorFromTps(double tps){
++        if (tps >= 18){
++            return BarColor.GREEN;
++        }
++
++        if (tps >= 15){
++            return BarColor.YELLOW;
++        }
++
++        return BarColor.RED;
++    }
++
++    private static void updateBarVisibilityForPlayers(){
++        for (Player player : Bukkit.getOnlinePlayers()){
++            if (player instanceof Bot || visibleExclude.contains(player)){
++                continue;
++            }
++
++            final ServerPlayer nmsEntity = ((CraftPlayer) player).getHandle();
++            final ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData> region = ((ServerLevel) nmsEntity.level()).regioniser.getRegionAtUnsynchronised(nmsEntity.sectionX, nmsEntity.sectionZ);
++
++            if (region != null && !bossBars.containsKey(region)){
++                //TODO Complete
++                final BossBar bossBar = new CraftBossBar("TPS : NaN MSPT: NaN",BarColor.PURPLE,BarStyle.SEGMENTED_20);
++                bossBars.put(region,bossBar);
++
++                bossBar.addPlayer(player);
++            }
++        }
++
++        final List<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>> barsToRemove = new ArrayList<>();
++        for (Map.Entry<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> entry : bossBars.entrySet()){
++            final BossBar bossBar = entry.getValue();
++            final ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData> region = entry.getKey();
++
++            final List<Player> removeQueue = new ArrayList<>();
++            final Map<BossBar,List<Player>> toAddQueue = new HashMap<>();
++            for (Player player : bossBar.getPlayers()){
++                if (player instanceof Bot){
++                    continue;
++                }
++
++                if (visibleExclude.contains(player)){
++                    removeQueue.add(player);
++                    continue;
++                }
++
++                final ServerPlayer nmsEntity = ((CraftPlayer) player).getHandle();
++                final ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData> currentHeldRegionPlayer = ((ServerLevel) nmsEntity.level()).regioniser.getRegionAtUnsynchronised(nmsEntity.sectionX,nmsEntity.sectionZ);
++
++                if (currentHeldRegionPlayer != null && region != currentHeldRegionPlayer){
++                    removeQueue.add(player);
++                    //TODO Complete
++                    final BossBar correctBossBar = bossBars.get(currentHeldRegionPlayer);
++                    final List<Player> singleQueue = new ArrayList<>();
++
++                    if (correctBossBar != null) {
++                        toAddQueue.put(correctBossBar, singleQueue);
++                        singleQueue.add(player);
++                    }
++                }
++            }
++
++            for (Player toRemove : removeQueue){
++                bossBar.removePlayer(toRemove);
++            }
++
++            for(Map.Entry<BossBar,List<Player>> singleEntry : toAddQueue.entrySet()){
++                final BossBar targetBar = singleEntry.getKey();
++                final List<Player> addQueue = singleEntry.getValue();
++                for (Player player : addQueue){
++                    targetBar.addPlayer(player);
++                }
++            }
++
++            if (bossBar.getPlayers().isEmpty()){
++                barsToRemove.add(region);
++            }
++        }
++
++        for (ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>  toRemove : barsToRemove){
++            bossBars.remove(toRemove);
++        }
++    }
++}
