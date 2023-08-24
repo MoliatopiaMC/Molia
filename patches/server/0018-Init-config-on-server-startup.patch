@@ -1,22 +1,19 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrHua269 <wangxyper@163.com>
-Date: Sat, 12 Aug 2023 11:38:30 +0800
+From: wangxyper <wangxyper@163.com>
+Date: Thu, 24 Aug 2023 14:12:35 +0800
 Subject: [PATCH] Init config on server startup
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index b980d2d7b1b3b383be484c7502cc1ec1d6f32907..a6768632645cf58efeab9242aa891c0f1a65c39a 100644
+index 0da9fbb069b1de552857a303ffead40eefc5c8fd..e45d2416ee7ca34d885763a51d795c67cac2b10b 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
-@@ -1,5 +1,6 @@
- package me.earthme.molia;
+@@ -2,14 +2,25 @@ package me.earthme.molia;
  
-+import com.google.common.collect.Lists;
- import net.minecraft.core.registries.BuiltInRegistries;
- import net.minecraft.world.entity.EntityType;
  import org.bukkit.configuration.InvalidConfigurationException;
-@@ -7,15 +8,26 @@ import org.bukkit.configuration.file.YamlConfiguration;
- 
+ import org.bukkit.configuration.file.YamlConfiguration;
+-
++import com.google.common.collect.Lists;
  import java.io.File;
  import java.io.IOException;
 +import java.util.List;
@@ -27,10 +24,6 @@ index b980d2d7b1b3b383be484c7502cc1ec1d6f32907..a6768632645cf58efeab9242aa891c0f
 +    //Optimizations
      public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
      public static boolean enableSuffocationOptimization = true;
-     public static boolean dabEnabled = true;
-     public static int maximumActivationPrio = 20;
-     public static int startDistanceSquared;
-     public static int activationDistanceMod = 8;
 +    //Gameplay
 +    public static boolean fakeplayerSupport = false;
 +    public static boolean alwaysSendFakeplayerData = true;
@@ -42,10 +35,10 @@ index b980d2d7b1b3b383be484c7502cc1ec1d6f32907..a6768632645cf58efeab9242aa891c0f
      //
  
      private static final YamlConfiguration configEntry = new YamlConfiguration();
-@@ -38,6 +50,11 @@ public class MoliaConfig {
-         startDistanceSquared = getInt("optimizations.dab.start_distance",12) ^ 2;
-         maximumActivationPrio = getInt("optimizations.dab.max_tick_freq",maximumActivationPrio);
-         activationDistanceMod = getInt("optimizations.dab.activation_distance_mod",activationDistanceMod);
+@@ -18,6 +29,11 @@ public class MoliaConfig {
+     public static void loadOrInitAll(){
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wake_up_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
 +
 +        //Gameplay
 +        fakeplayerSupport = getBoolean("gameplay.leaves.fakeplayer.enabled",fakeplayerSupport);
@@ -54,7 +47,7 @@ index b980d2d7b1b3b383be484c7502cc1ec1d6f32907..a6768632645cf58efeab9242aa891c0f
      }
  
      public static void init(){
-@@ -48,6 +65,8 @@ public class MoliaConfig {
+@@ -28,6 +44,8 @@ public class MoliaConfig {
              e.printStackTrace();
          }
          configEntry.options().copyDefaults(true);
@@ -63,7 +56,7 @@ index b980d2d7b1b3b383be484c7502cc1ec1d6f32907..a6768632645cf58efeab9242aa891c0f
      }
  
      public static void save(){
-@@ -82,4 +101,9 @@ public class MoliaConfig {
+@@ -62,4 +80,9 @@ public class MoliaConfig {
          configEntry.addDefault(key,def);
          return configEntry.getDouble(key);
      }
