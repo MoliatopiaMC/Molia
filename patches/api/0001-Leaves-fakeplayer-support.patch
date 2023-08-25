@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 22:23:40 +0800
+Subject: [PATCH] Leaves fakeplayer support
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index c54d5f254a4e7055470a4868187de3a18c21d0e5..5e1d7d24ed16a0dc0a431dd869abe7141194f4db 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Contract;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
+ import io.papermc.paper.util.JarManifests; // Paper
++import top.leavesmc.leaves.entity.BotManager;
+ 
+ /**
+  * Represents the Bukkit core, for version and Server singleton handling
+@@ -2718,6 +2719,17 @@ public final class Bukkit {
+     }
+     // Folia end - region threading API
+ 
++    // Leaves start - Bot API
++    /**
++     * Returns a bot manager.
++     *
++     * @return Bot Manager
++     */
++    public static @NotNull BotManager getBotManager() {
++        return server.getBotManager();
++    }
++    // Leaves end - Bot API
++
+     @NotNull
+     public static Server.Spigot spigot() {
+         return server.spigot();
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index f77553fc70bc1f3f18af50e53c0041bbaaebab9a..dfe75b64c0e1c1b7c1053cc35d8057b76f8aff76 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -57,12 +57,22 @@ import org.bukkit.util.CachedServerIcon;
+ import org.jetbrains.annotations.Contract;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
++import top.leavesmc.leaves.entity.BotManager;
+ 
+ /**
+  * Represents a server implementation.
+  */
+ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audience.ForwardingAudience { // Paper
+ 
++    // Leaves start - Bot API
++    /**
++     * Returns a bot manager.
++     *
++     * @return Bot Manager
++     */
++    @NotNull BotManager getBotManager();
++    // Leaves end - Bot API
++
+     /**
+      * Returns the de facto plugins directory, generally used for storing plugin jars to be loaded,
+      * as well as their {@link org.bukkit.plugin.Plugin#getDataFolder() data folders}.

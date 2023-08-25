@@ -1,0 +1,84 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:19:43 +0800
+Subject: [PATCH] Gale Variable entity wake-up duration
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index f81d8ad303158ee9ad7d38025d187da89ebf5b3c..551577bccfe354ee8ea32b9f1da8e87e84d4ce48 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -10,6 +10,8 @@ public class MoliaConfig {
+     //All values
+     public static boolean fixCanNotMoveEntityOffMain = true;
+     public static boolean fixDoublingChunkSend = true;
++
++    public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+@@ -18,6 +20,8 @@ public class MoliaConfig {
+     public static void loadAllValues(){
+         fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
+         fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
++
++        entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         save();
+     }
+ 
+diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
+index 7c4daa8557f1956c8b823d4764791c60957d1091..6240354c4f03f03ebcccfe0e52d721427a6549c5 100644
+--- a/src/main/java/org/spigotmc/ActivationRange.java
++++ b/src/main/java/org/spigotmc/ActivationRange.java
+@@ -1,5 +1,6 @@
+ package org.spigotmc;
+ 
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.server.level.ServerChunkCache;
+@@ -71,28 +72,40 @@ public class ActivationRange
+         if (entity.activationType == ActivationType.VILLAGER) {
+             if (inactiveFor > config.wakeUpInactiveVillagersEvery && worldData.wakeupInactiveRemainingVillagers > 0) { // Folia - threaded regions
+                 worldData.wakeupInactiveRemainingVillagers--; // Folia - threaded regions
+-                return config.wakeUpInactiveVillagersFor;
++                return getWakeUpDurationWithVariance(entity, config.wakeUpInactiveVillagersFor); // Gale - variable entity wake-up duration
+             }
+         } else if (entity.activationType == ActivationType.ANIMAL) {
+             if (inactiveFor > config.wakeUpInactiveAnimalsEvery && worldData.wakeupInactiveRemainingAnimals > 0) { // Folia - threaded regions
+                 worldData.wakeupInactiveRemainingAnimals--; // Folia - threaded regions
+-                return config.wakeUpInactiveAnimalsFor;
++                return getWakeUpDurationWithVariance(entity, config.wakeUpInactiveAnimalsFor); // Gale - variable entity wake-up duration
+             }
+         } else if (entity.activationType == ActivationType.FLYING_MONSTER) {
+             if (inactiveFor > config.wakeUpInactiveFlyingEvery && worldData.wakeupInactiveRemainingFlying > 0) { // Folia - threaded regions
+                 worldData.wakeupInactiveRemainingFlying--; // Folia - threaded regions
+-                return config.wakeUpInactiveFlyingFor;
++                return getWakeUpDurationWithVariance(entity, config.wakeUpInactiveFlyingFor); // Gale - variable entity wake-up duration
+             }
+         } else if (entity.activationType == ActivationType.MONSTER || entity.activationType == ActivationType.RAIDER) {
+             if (inactiveFor > config.wakeUpInactiveMonstersEvery && worldData.wakeupInactiveRemainingMonsters > 0) { // Folia - threaded regions
+                 worldData.wakeupInactiveRemainingMonsters--; // Folia - threaded regions
+-                return config.wakeUpInactiveMonstersFor;
++                return getWakeUpDurationWithVariance(entity, config.wakeUpInactiveMonstersFor); // Gale - variable entity wake-up duration
+             }
+         }
+         return -1;
+     }
+     // Paper end
+ 
++    // Gale start - variable entity wake-up duration
++    private static final java.util.Random wakeUpDurationRandom = new java.util.Random();
++
++    private static int getWakeUpDurationWithVariance(Entity entity, int wakeUpDuration) {
++        double deviation = MoliaConfig.entityWakeUpDurationRatioStandardDeviation;
++        if (deviation <= 0) {
++            return wakeUpDuration;
++        }
++        return (int) Math.min(Integer.MAX_VALUE, Math.max(1, Math.round(wakeUpDuration * wakeUpDurationRandom.nextGaussian(1, deviation))));
++    }
++    // Gale end - variable entity wake-up duration
++
+     static AABB maxBB = new AABB( 0, 0, 0, 0, 0, 0 );
+ 
+     /**

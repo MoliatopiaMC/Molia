@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:27:00 +0800
+Subject: [PATCH] Pufferfish Optimize suffocation
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 551577bccfe354ee8ea32b9f1da8e87e84d4ce48..3df8728ebe9f027757e288fe6b8a48788ae12c8f 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -12,6 +12,7 @@ public class MoliaConfig {
+     public static boolean fixDoublingChunkSend = true;
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
++    public static boolean enableSuffocationOptimization = true;
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+@@ -22,6 +23,7 @@ public class MoliaConfig {
+         fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
+ 
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
++        enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
+         save();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index 29d5ac8178290d04636b9cf33e9617f0388987fc..d91638a108c75adf596ebe4080ec3099d02c05c6 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -19,6 +19,8 @@ import java.util.Optional;
+ import java.util.UUID;
+ import java.util.function.Predicate;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.BlockUtil;
+ import net.minecraft.advancements.CriteriaTriggers;
+ import net.minecraft.commands.arguments.EntityAnchorArgument;
+@@ -421,7 +423,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+             boolean flag = this instanceof net.minecraft.world.entity.player.Player;
+ 
+             if (!this.level().isClientSide) {
+-                if (this.isInWall()) {
++                if ((!MoliaConfig.enableSuffocationOptimization || (tickCount % 10 == 0 && couldPossiblyBeHurt(1.0F))) && this.isInWall()) { // Pufferfish - optimize suffocation
+                     this.hurt(this.damageSources().inWall(), 1.0F);
+                 } else if (flag && !this.level().getWorldBorder().isWithinBounds(this.getBoundingBox())) {
+                     double d0 = this.level().getWorldBorder().getDistanceToBorder(this) + this.level().getWorldBorder().getDamageSafeZone();
+@@ -1379,6 +1381,15 @@ public abstract class LivingEntity extends Entity implements Attackable {
+         return this.getHealth() <= 0.0F;
+     }
+ 
++    // Pufferfish start - optimize suffocation
++    public boolean couldPossiblyBeHurt(float amount) {
++        if ((float) this.invulnerableTime > (float) this.invulnerableDuration / 2.0F && amount <= this.lastHurt) {
++            return false;
++        }
++        return true;
++    }
++    // Pufferfish end
++
+     @Override
+     public boolean hurt(DamageSource source, float amount) {
+         if (this.isInvulnerableTo(source)) {

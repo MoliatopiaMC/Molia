@@ -1,0 +1,1356 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 22:32:03 +0800
+Subject: [PATCH] Fix wrong java file location error
+
+
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/Actions.java b/src/main/java/top/leavesmc/leaves/bot/agent/Actions.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..c8490bcb9108d72281338f0a3f806586986ee2d9
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/Actions.java
+@@ -0,0 +1,64 @@
++package top.leavesmc.leaves.bot.agent;
++
++import org.jetbrains.annotations.Contract;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.agent.actions.*;
++
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.Map;
++import java.util.Set;
++
++public class Actions {
++
++    private static final Map<String, BotAction> actions = new HashMap<>();
++
++    public static void registerAll() {
++        register(new AttackAction());
++        register(new BreakBlockAction());
++        register(new DropAction());
++        register(new JumpAction());
++        register(new RotateAction());
++        register(new SneakAction());
++        register(new StopAction());
++        register(new UseItemAction());
++        register(new UseItemOnAction());
++        register(new UseItemToAction());
++        register(new LookAction());
++        register(new FishAction());
++        register(new AttackSelfAction());
++        register(new SwimAction());
++        register(new LayAction());
++    }
++
++    public static boolean register(@NotNull BotAction action) {
++        if (!actions.containsKey(action.getName())) {
++            actions.put(action.getName(), action);
++            return true;
++        }
++        return false;
++    }
++
++    public static boolean unregister(@NotNull String name) {
++        if (actions.containsKey(name)) {
++            actions.remove(name);
++            return true;
++        }
++        return false;
++    }
++
++    @NotNull
++    @Contract(pure = true)
++    public static Collection<BotAction> getAll() {
++        return actions.values();
++    }
++
++    @NotNull
++    public static Set<String> getNames() {
++        return actions.keySet();
++    }
++
++    public static BotAction getForName(String name) {
++        return actions.get(name);
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/BotAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/BotAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9d01944805cfbffbd08343121b8ff27e06e504fb
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/BotAction.java
+@@ -0,0 +1,71 @@
++package top.leavesmc.leaves.bot.agent;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++import java.util.List;
++
++public abstract class BotAction {
++
++    private final String name;
++    private final CommandArgument argument;
++
++    private boolean cancel;
++    private int tickDelay;
++    private int number;
++
++    public BotAction(String name, CommandArgument argument) {
++        this.name = name;
++        this.argument = argument;
++
++        this.cancel = false;
++        this.tickDelay = 20;
++        this.number = -1;
++    }
++
++    public String getName() {
++        return name;
++    }
++
++    public int getTickDelay() {
++        return tickDelay;
++    }
++
++    public int getNumber() {
++        return number;
++    }
++
++    public boolean isCancel() {
++        return cancel;
++    }
++
++    public BotAction setTickDelay(int tickDelay) {
++        this.tickDelay = Math.max(0, tickDelay);
++        return this;
++    }
++
++    public BotAction setTabComplete(int index, List<String> list) {
++        argument.setTabComplete(index, list);
++        return this;
++    }
++
++    public BotAction setNumber(int number) {
++        this.number = Math.max(-1, number);
++        return this;
++    }
++
++    public void setCancel(boolean cancel) {
++        this.cancel = cancel;
++    }
++
++    public CommandArgument getArgument() {
++        return argument;
++    }
++
++    public abstract BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result);
++
++    public abstract boolean doTick(@NotNull ServerBot bot);
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..609605b21cfe5af8876f76ea4922e379c5dd166e
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackAction.java
+@@ -0,0 +1,36 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.phys.EntityHitResult;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class AttackAction extends BotAction {
++
++    public AttackAction() {
++        super("attack", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new AttackAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        EntityHitResult result = bot.getTargetEntity(3);
++        if (result != null) {
++            bot.attack(result.getEntity());
++            return true;
++        }
++        return false;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackSelfAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackSelfAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5a0e5626751d0b6ea12a6074b5626937b6668608
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/AttackSelfAction.java
+@@ -0,0 +1,42 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import com.google.common.base.Predicates;
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.entity.Entity;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class AttackSelfAction extends BotAction {
++
++    public AttackSelfAction() {
++        super("attack_self", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new AttackSelfAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        List<Entity> entities = bot.level().getEntities((Entity) null, bot.getBoundingBox(), Predicates.alwaysTrue());
++        if (!entities.isEmpty()) {
++            for (int i = 0; i < entities.size(); i++) {
++                Entity entity = entities.get(i);
++                if (entity != bot) {
++                    bot.attack(entity);
++                    return true;
++                }
++            }
++        }
++        return false;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/BreakBlockAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/BreakBlockAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2a3ca671b43fec658bf5cd8a6eb08b476a766c29
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/BreakBlockAction.java
+@@ -0,0 +1,104 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.core.BlockPos;
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.level.block.state.BlockState;
++import org.bukkit.block.Block;
++import org.bukkit.craftbukkit.block.CraftBlock;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class BreakBlockAction extends BotAction {
++
++    public BreakBlockAction() {
++        super("break", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new BreakBlockAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public BotAction setTickDelay(int tickDelay) {
++        super.setTickDelay(0);
++        this.delay = tickDelay;
++        return this;
++    }
++
++    private int delay = 0;
++    private int nowDelay = 0;
++
++    private BlockPos lastPos = null;
++    private int destroyProgressTime = 0;
++    private int lastSentState = -1;
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        if (nowDelay > 0) {
++            nowDelay--;
++            return false;
++        }
++
++        Block block = bot.getBukkitEntity().getTargetBlockExact(5);
++        if (block != null) {
++            BlockPos pos = ((CraftBlock) block).getPosition();
++
++            if (lastPos == null || !lastPos.equals(pos)) {
++                lastPos = pos;
++                destroyProgressTime = 0;
++                lastSentState = -1;
++            }
++
++            BlockState iblockdata = bot.level().getBlockState(pos);
++            if (!iblockdata.isAir()) {
++                bot.punch();
++
++                if (iblockdata.getDestroyProgress(bot, bot.level(), pos) >= 1.0F) {
++                    bot.gameMode.destroyAndAck(pos, 0, "insta mine");
++                    bot.level().destroyBlockProgress(bot.getId(), pos, -1);
++                    bot.updateItemInMainHand();
++                    finalBreak();
++                    return true;
++                }
++
++                float damage = this.incrementDestroyProgress(bot, iblockdata, pos);
++                if (damage >= 1.0F) {
++                    bot.gameMode.destroyAndAck(pos, 0, "destroyed");
++                    bot.level().destroyBlockProgress(bot.getId(), pos, -1);
++                    bot.updateItemInMainHand();
++                    finalBreak();
++                    return true;
++                }
++            }
++        }
++        return false;
++    }
++
++    private void finalBreak() {
++        lastPos = null;
++        destroyProgressTime = 0;
++        lastSentState = -1;
++        nowDelay = delay;
++    }
++
++    private float incrementDestroyProgress(ServerBot bot, @NotNull BlockState state, BlockPos pos) {
++        float f = state.getDestroyProgress(bot, bot.level(), pos) * (float) (++destroyProgressTime);
++        int k = (int) (f * 10.0F);
++
++        if (k != lastSentState) {
++            bot.level().destroyBlockProgress(bot.getId(), pos, k);
++            lastSentState = k;
++        }
++
++        return f;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/CraftCustomBotAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/CraftCustomBotAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..89a361249179d7a0a84768e715ced05aafc13272
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/CraftCustomBotAction.java
+@@ -0,0 +1,48 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.bukkit.entity.Player;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.entity.botaction.CustomBotAction;
++
++public class CraftCustomBotAction extends BotAction {
++
++    private final CustomBotAction realAction;
++
++    public CraftCustomBotAction(String name, @NotNull CustomBotAction realAction) {
++        super(name, new CommandArgument().setAllTabComplete(realAction.getTabComplete()));
++        this.realAction = realAction;
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    public BotAction getNew(@NotNull Player player, String[] args) {
++        CustomBotAction newRealAction = realAction.getNew(player, args);
++        if (newRealAction != null) {
++            return new CraftCustomBotAction(getName(), newRealAction);
++        }
++        return null;
++    }
++
++    @Override
++    public int getNumber() {
++        return realAction.getNumber();
++    }
++
++    @Override
++    public int getTickDelay() {
++        return realAction.getTickDelay();
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        return realAction.doTick(bot.getBukkitPlayer());
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/DropAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/DropAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..cc72960b8490a72aca5db3e834c71f97e3742f7d
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/DropAction.java
+@@ -0,0 +1,26 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class DropAction extends BotAction {
++
++    public DropAction() {
++        super("drop", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return this.setTickDelay(0).setNumber(1);
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.dropAll();
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/FishAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/FishAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d92ea54770bce73c2f10f1ebcb0dff5b9532e0e9
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/FishAction.java
+@@ -0,0 +1,70 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.InteractionHand;
++import net.minecraft.world.entity.projectile.FishingHook;
++import net.minecraft.world.item.FishingRodItem;
++import net.minecraft.world.item.ItemStack;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class FishAction extends BotAction {
++
++    public FishAction() {
++        super("fish", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new FishAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public BotAction setTickDelay(int tickDelay) {
++        super.setTickDelay(0);
++        this.delay = tickDelay;
++        return this;
++    }
++
++    private int delay = 0;
++    private int nowDelay = 0;
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        if (nowDelay > 0) {
++            nowDelay--;
++            return false;
++        }
++
++        ItemStack mainHand = bot.getMainHandItem();
++        if (mainHand == ItemStack.EMPTY || mainHand.getItem().getClass() != FishingRodItem.class) {
++            return false;
++        }
++
++        FishingHook fishingHook = bot.fishing;
++        if (fishingHook != null) {
++            if (fishingHook.currentState == FishingHook.FishHookState.HOOKED_IN_ENTITY) {
++                mainHand.use(bot.level(), bot, InteractionHand.MAIN_HAND);
++                nowDelay = 20;
++                return false;
++            }
++            if (fishingHook.nibble > 0) {
++                mainHand.use(bot.level(), bot, InteractionHand.MAIN_HAND);
++                nowDelay = delay;
++                return true;
++            }
++        } else {
++            mainHand.use(bot.level(), bot, InteractionHand.MAIN_HAND);
++        }
++
++        return false;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/JumpAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/JumpAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d99f667992e45e85c0fe0bd74682d563fe1315eb
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/JumpAction.java
+@@ -0,0 +1,35 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class JumpAction extends BotAction {
++
++    public JumpAction() {
++        super("jump", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new JumpAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        if (bot.onGround()) {
++            bot.jumpFromGround();
++            return true;
++        } else {
++            return false;
++        }
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/LayAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/LayAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b1d8e632686709c2425794ed28b694cf38984ab7
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/LayAction.java
+@@ -0,0 +1,30 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.entity.Pose;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class LayAction extends BotAction {
++
++    public LayAction() {
++        super("lay", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return this.setTickDelay(0).setNumber(1);
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        if (bot.isShiftKeyDown()) {
++            bot.setShiftKeyDown(false);
++        }
++        bot.setPose(bot.getPose() != Pose.FALL_FLYING ? Pose.FALL_FLYING : Pose.STANDING);
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/LookAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/LookAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5432e61c156a1a6d49dcf4b24e3bcfcc6c1aa7bb
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/LookAction.java
+@@ -0,0 +1,49 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.bukkit.util.Vector;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class LookAction extends BotAction {
++
++    public LookAction() {
++        super("look", new CommandArgument(CommandArgumentType.DOUBLE, CommandArgumentType.DOUBLE, CommandArgumentType.DOUBLE));
++        setTabComplete(0, List.of("<X>"));
++        setTabComplete(1, List.of("<Y>"));
++        setTabComplete(2, List.of("<Z>"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        Vector pos = result.readVector();
++        if (pos != null) {
++            return new LookAction().setPos(pos).setTickDelay(0).setNumber(1);
++        } else {
++            return null;
++        }
++    }
++
++    private Vector pos;
++
++    public LookAction setPos(Vector pos) {
++        if (pos != null) {
++            this.pos = pos;
++            return this;
++        } else {
++            return null;
++        }
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.look(pos.subtract(bot.getLocation().toVector()), false);
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/RotateAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/RotateAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..1e5be54b33467591924cb2400639fb593dc50ec6
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/RotateAction.java
+@@ -0,0 +1,33 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class RotateAction extends BotAction {
++
++    public RotateAction() {
++        super("rotate", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new RotateAction().setPlayer(player).setTickDelay(0).setNumber(1);
++    }
++
++    private ServerPlayer player;
++
++    public RotateAction setPlayer(ServerPlayer player) {
++        this.player = player;
++        return this;
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.faceLocation(player.getBukkitEntity().getLocation());
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/SneakAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/SneakAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..250416464daae6f824f02b4fd339a4c1b7a2fb67
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/SneakAction.java
+@@ -0,0 +1,28 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.entity.Pose;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class SneakAction extends BotAction {
++
++    public SneakAction() {
++        super("sneak", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return this.setTickDelay(0).setNumber(1);
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.setShiftKeyDown(!bot.isShiftKeyDown());
++        bot.setPose(bot.isShiftKeyDown() ? Pose.CROUCHING : Pose.STANDING);
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/StopAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/StopAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..36d199269afc46783b0815e3887842cd82b6e813
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/StopAction.java
+@@ -0,0 +1,26 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class StopAction extends BotAction {
++
++    public StopAction() {
++        super("stop", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return this.setTickDelay(0).setNumber(0);
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        this.setCancel(true);
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/SwimAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/SwimAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..58c815bd0ebfd455fcf4903ee5ced6b81be00982
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/SwimAction.java
+@@ -0,0 +1,26 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++
++public class SwimAction extends BotAction {
++
++    public SwimAction() {
++        super("swim", new CommandArgument());
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return this.setTickDelay(0).setNumber(1);
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.waterSwim = !bot.waterSwim;
++        return true;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5dc3fbf8e62ccffc8291962c835a568efd65d7af
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemAction.java
+@@ -0,0 +1,33 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.InteractionHand;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class UseItemAction extends BotAction {
++
++    public UseItemAction() {
++        super("use", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new UseItemAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        bot.punch();
++        bot.updateItemInMainHand();
++        return bot.getInventory().getSelected().use(bot.level(), bot, InteractionHand.MAIN_HAND).getResult().consumesAction();
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemOnAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemOnAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..75488ee2cb25190f9c16898759c57f233d240c4c
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemOnAction.java
+@@ -0,0 +1,40 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.InteractionHand;
++import net.minecraft.world.level.ClipContext;
++import net.minecraft.world.phys.BlockHitResult;
++import net.minecraft.world.phys.HitResult;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class UseItemOnAction extends BotAction {
++
++    public UseItemOnAction() {
++        super("use_on", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new UseItemOnAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        HitResult result = bot.getRayTrace(4, ClipContext.Fluid.NONE);
++        if (result.getType() == HitResult.Type.BLOCK) {
++            bot.punch();
++            bot.updateItemInMainHand();
++            return bot.gameMode.useItemOn(bot, bot.level(), bot.getItemInHand(InteractionHand.MAIN_HAND), InteractionHand.MAIN_HAND, (BlockHitResult) result).consumesAction();
++        }
++        return false;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemToAction.java b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemToAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..cc8689ee726144f220e4ccc5cd418b79a29b79ab
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/bot/agent/actions/UseItemToAction.java
+@@ -0,0 +1,38 @@
++package top.leavesmc.leaves.bot.agent.actions;
++
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.world.InteractionHand;
++import net.minecraft.world.phys.EntityHitResult;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.bot.ServerBot;
++import top.leavesmc.leaves.bot.agent.BotAction;
++import top.leavesmc.leaves.command.CommandArgument;
++import top.leavesmc.leaves.command.CommandArgumentResult;
++import top.leavesmc.leaves.command.CommandArgumentType;
++
++import java.util.List;
++
++public class UseItemToAction extends BotAction {
++
++    public UseItemToAction() {
++        super("use_to", new CommandArgument(CommandArgumentType.INTEGER, CommandArgumentType.INTEGER));
++        setTabComplete(0, List.of("[TickDelay]"));
++        setTabComplete(1, List.of("[DoNumber]"));
++    }
++
++    @Override
++    public BotAction getNew(@NotNull ServerPlayer player, @NotNull CommandArgumentResult result) {
++        return new UseItemToAction().setTickDelay(result.readInt(20)).setNumber(result.readInt(-1));
++    }
++
++    @Override
++    public boolean doTick(@NotNull ServerBot bot) {
++        EntityHitResult result = bot.getTargetEntity(3);
++        if (result != null) {
++            bot.punch();
++            bot.updateItemInMainHand();
++            return result.getEntity().interact(bot, InteractionHand.MAIN_HAND).consumesAction();
++        }
++        return false;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/entity/Bot.java b/src/main/java/top/leavesmc/leaves/entity/Bot.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..8816683c795f9be6a4f112203cfac3f59d8faba5
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/entity/Bot.java
+@@ -0,0 +1,46 @@
++package top.leavesmc.leaves.entity;
++
++import org.bukkit.entity.Player;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
++import top.leavesmc.leaves.entity.botaction.LeavesBotAction;
++
++/**
++ * Represents a fakeplayer
++ */
++public interface Bot extends Player {
++
++    /**
++     * Gets the fakeplayer skin
++     *
++     * @return fakeplayer skin name
++     */
++    @Nullable
++    public String getSkinName();
++
++    /**
++     * Gets the fakeplayer name without prefix and suffix
++     *
++     * @return fakeplayer real name
++     */
++    @NotNull
++    public String getRealName();
++
++    /**
++     * Sets the fakeplayer action with args.
++     *
++     * @param action action name
++     * @param player player who create this action
++     * @param args passed action arguments
++     */
++    public boolean setBotAction(@NotNull String action, @NotNull Player player, @NotNull String[] args);
++
++    /**
++     * Sets the fakeplayer action with args.
++     *
++     * @param action leaves bot action
++     * @param player player who create this action
++     * @param args passed action arguments
++     */
++    public boolean setBotAction(@NotNull LeavesBotAction action, @NotNull Player player, @NotNull String[] args);
++}
+diff --git a/src/main/java/top/leavesmc/leaves/entity/BotManager.java b/src/main/java/top/leavesmc/leaves/entity/BotManager.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f2258027b2ed4bfcf7feda2e9075b1a1a05a85b6
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/entity/BotManager.java
+@@ -0,0 +1,107 @@
++package top.leavesmc.leaves.entity;
++
++import org.bukkit.Location;
++import org.bukkit.util.Consumer;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
++import top.leavesmc.leaves.entity.botaction.CustomBotAction;
++
++import java.util.Collection;
++import java.util.UUID;
++
++/**
++ * Simple fakeplayer manager
++ */
++public interface BotManager {
++
++    /**
++     * Gets a fakeplayer object by the given uuid.
++     *
++     * @param uuid the uuid to look up
++     * @return a fakeplayer if one was found, null otherwise
++     */
++    @Nullable
++    public Bot getBot(@NotNull UUID uuid);
++
++    /**
++     * Gets a fakeplayer object by the given name.
++     *
++     * @param name the name to look up
++     * @return a fakeplayer if one was found, null otherwise
++     */
++    @Nullable
++    public Bot getBot(@NotNull String name);
++
++    /**
++     * Creates a fakeplayer with given param.
++     * <p>
++     * prefix and suffix will not be added.
++     *
++     * @param name fakeplayer name
++     * @param realName fakeplayer real name
++     * @param skin fakeplayer skin arr
++     * @param skinName fakeplayer skin name
++     * @param location a location will create fakeplayer
++     * @return a fakeplayer if success, null otherwise
++     */
++    @Nullable
++    public Bot createBot(@NotNull String name, @NotNull String realName, @Nullable String[] skin, @Nullable String skinName, @NotNull Location location);
++
++    /**
++     * Creates a fakeplayer with given param.
++     *
++     * @param name fakeplayer name
++     * @param skinName fakeplayer skin name
++     * @param location a location will create fakeplayer
++     * @param consumer a consumer after create fakeplayer success
++     */
++    public void createBot(@NotNull String name, @Nullable String skinName, @NotNull Location location, @Nullable Consumer<Bot> consumer);
++
++    /**
++     * Removes a fakeplayer object by the given name.
++     *
++     * @param name the name to look up
++     */
++    public void removeBot(@NotNull String name);
++
++    /**
++     * Removes a fakeplayer object by the given uuid.
++     *
++     * @param uuid the uuid to look up
++     */
++    public void removeBot(@NotNull UUID uuid);
++
++    /**
++     * Removes all fakeplayers.
++     */
++    public void removeAllBots();
++
++    /**
++     * Save fakeplayers data if resident-fakeplayer is true, or remove all fakeplayer.
++     */
++    public void saveOrRemoveAllBots();
++
++    /**
++     * Gets a view of all currently logged in fakeplayers. This view is a reused object, making some operations like Collection.size() zero-allocation.
++     *
++     * @return a view of fakeplayers.
++     */
++    public Collection<Bot> getBots();
++
++    /**
++     * Register a custom bot action.
++     *
++     * @param name action name
++     * @param action action executor
++     * @return true if success, or false
++     */
++    public boolean registerCustomBotAction(String name, CustomBotAction action);
++
++    /**
++     * Unregister a custom bot action.
++     *
++     * @param name action name
++     * @return true if success, or false
++     */
++    public boolean unregisterCustomBotAction(String name);
++}
+diff --git a/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java b/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..7abf4eef22e40468929e724ebc07a97b0b2a05f3
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java
+@@ -0,0 +1,52 @@
++package top.leavesmc.leaves.entity.botaction;
++
++import org.bukkit.entity.Player;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
++import top.leavesmc.leaves.entity.Bot;
++
++import java.util.List;
++
++/**
++ * Represents a class which contains methods for a custom bot action
++ */
++public interface CustomBotAction {
++
++    /**
++     * Executes the action, returning its success.
++     *
++     * @param bot bot of the action
++     * @return true if once action finish, otherwise false
++     */
++    public boolean doTick(Bot bot);
++
++    /**
++     *  Created a new action instance.
++     *
++     * @param player player who create this action
++     * @param args passed action arguments
++     * @return a new action instance with given args
++     */
++    public @Nullable CustomBotAction getNew(Player player, String[] args);
++
++    /**
++     * Requests a list of possible completions for a action argument.
++     *
++     * @return A List of a List of possible completions for the argument.
++     */
++    public @NotNull List<List<String>> getTabComplete();
++
++    /**
++     * Return a ticks to wait between {@link CustomBotAction#doTick(Bot)}
++     *
++     * @return the ticks to wait between runs
++     */
++    public int getTickDelay();
++
++    /**
++     * Return a number of times {@link CustomBotAction#doTick(Bot)} can return true
++     *
++     * @return the number of times an action can be executed
++     */
++    public int getNumber();
++}
+diff --git a/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java b/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e298722319ff0cfd52e531693ea3767e5f9a3d52
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java
+@@ -0,0 +1,32 @@
++package top.leavesmc.leaves.entity.botaction;
++
++/**
++ * A Leaves bot action enum
++ */
++public enum LeavesBotAction {
++    ATTACK("attack"),
++    ATTACK_SELF("attack_self"),
++    BREAK("break"),
++    DROP("drop"),
++    FISH("fish"),
++    JUMP("jump"),
++    LAY("lay"),
++    LOOK("look"),
++    ROTATE("rotate"),
++    SNEAK("sneak"),
++    STOP("stop"),
++    SWIM("swim"),
++    USE("use"),
++    USE_ON("use_on"),
++    USE_TO("use_to");
++
++    private final String name;
++
++    private LeavesBotAction(String name) {
++        this.name = name;
++    }
++
++    public String getName() {
++        return name;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..7cf1eb4eb3d2fe9310f9272ec53208632b87b49b
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
+@@ -0,0 +1,106 @@
++package top.leavesmc.leaves.event.bot;
++
++import org.bukkit.Location;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
++
++/**
++ * Call when a fakeplayer creates a server
++ */
++public class BotCreateEvent extends Event implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++
++    private final String bot;
++    private final String skin;
++    private String joinMessage;
++    private Location createLocation;
++    private boolean cancel = false;
++
++    public BotCreateEvent(@NotNull final String who, @NotNull final String skin, @NotNull final Location createLocation, @Nullable final String joinMessage) {
++        this.bot = who;
++        this.skin = skin;
++        this.joinMessage = joinMessage;
++        this.createLocation = createLocation;
++    }
++
++    /**
++     * Gets the fakeplayer name
++     *
++     * @return fakeplayer name
++     */
++    public String getBot() {
++        return bot;
++    }
++
++    /**
++     * Gets the join message to send to all online players
++     *
++     * @return string join message. Can be null
++     */
++    @Nullable
++    public String getJoinMessage() {
++        return joinMessage;
++    }
++
++    /**
++     * Sets the join message to send to all online players
++     *
++     * @param joinMessage join message. If null, no message will be sent
++     */
++    public void setJoinMessage(@Nullable String joinMessage) {
++        this.joinMessage = joinMessage;
++    }
++
++    /**
++     * Gets the location to create the fakeplayer
++     *
++     * @return Location to create the fakeplayer
++     */
++    @NotNull
++    public Location getCreateLocation() {
++        return createLocation;
++    }
++
++    /**
++     * Sets the location to create the fakeplayer
++     *
++     * @param createLocation location to create the fakeplayer
++     */
++    public void setCreateLocation(@NotNull Location createLocation) {
++        this.createLocation = createLocation;
++    }
++
++    /**
++     * Gets the fakeplayer skin
++     *
++     * @return fakeplayer skin name
++     */
++    @Nullable
++    public String getSkin() {
++        return skin;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return cancel;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        this.cancel = cancel;
++    }
++
++    @Override
++    @NotNull
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4a4fe07ce965d4a97e0d8105a91310dac7d1343c
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java
+@@ -0,0 +1,31 @@
++package top.leavesmc.leaves.event.bot;
++
++import org.bukkit.event.Event;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.entity.Bot;
++
++/**
++ * Represents a fakeplayer related event
++ */
++public abstract class BotEvent extends Event {
++    protected Bot bot;
++
++    public BotEvent(@NotNull final Bot who) {
++        bot = who;
++    }
++
++    public BotEvent(@NotNull final Bot who, boolean async) { // Paper - public
++        super(async);
++        bot = who;
++    }
++
++    /**
++     * Returns the fakeplayer involved in this event
++     *
++     * @return Fakeplayer who is involved in this event
++     */
++    @NotNull
++    public final Bot getBot() {
++        return bot;
++    }
++}
+diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..10afa5c7fd4ee8a4e72d64f8ca9bf8731ec2ad61
+--- /dev/null
++++ b/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java
+@@ -0,0 +1,27 @@
++package top.leavesmc.leaves.event.bot;
++
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++import top.leavesmc.leaves.entity.Bot;
++
++/**
++ * Called when a fakeplayer joins a server
++ */
++public class BotJoinEvent extends BotEvent {
++    private static final HandlerList handlers = new HandlerList();
++
++    public BotJoinEvent(@NotNull Bot who) {
++        super(who);
++    }
++
++    @Override
++    @NotNull
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}

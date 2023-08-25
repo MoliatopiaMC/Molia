@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 22:37:11 +0800
+Subject: [PATCH] Add config for trip wire duping fixes
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 37614dfb908a6c3f4a1d5d715e375c03abc4f321..69dd5cc40ded81c6cb89e1d6c2f042e5369d6e0f 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -15,6 +15,7 @@ public class MoliaConfig {
+     public static boolean fixCanNotMoveEntityOffMain = true;
+     public static boolean fixDoublingChunkSend = true;
+     public static boolean allowGravityBlockDupe = false;
++    public static boolean updateTripWireIfRemoving = false;
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     public static boolean enableSuffocationOptimization = true;
+@@ -44,6 +45,7 @@ public class MoliaConfig {
+         fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
+         fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
++        updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+ 
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
+diff --git a/src/main/java/net/minecraft/world/level/block/TripWireHookBlock.java b/src/main/java/net/minecraft/world/level/block/TripWireHookBlock.java
+index 004dce26ff073f1de52a84cd425c4f60fdab5e50..cff27b70dcf7f6db821a34fcf08cab6912305d0c 100644
+--- a/src/main/java/net/minecraft/world/level/block/TripWireHookBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/TripWireHookBlock.java
+@@ -2,6 +2,8 @@ package net.minecraft.world.level.block;
+ 
+ import com.google.common.base.MoreObjects;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+ import net.minecraft.server.level.ServerLevel;
+@@ -147,7 +149,7 @@ public class TripWireHookBlock extends Block {
+                 boolean flag7 = (Boolean) iblockdata2.getValue(TripWireBlock.POWERED);
+ 
+                 flag5 |= flag6 && flag7;
+-                if (k != i || !tripWireBeingRemoved || !flag6) // Paper - don't update the tripwire again if being removed and not disarmed
++                if (k != i || !tripWireBeingRemoved || !flag6 || MoliaConfig.updateTripWireIfRemoving) // Paper - don't update the tripwire again if being removed and not disarmed //Molia - Add config for this fix
+                 aiblockdata[k] = iblockdata2;
+                 if (k == i) {
+                     world.scheduleTick(pos, (Block) this, 10);

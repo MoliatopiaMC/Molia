@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:06:10 +0800
+Subject: [PATCH] Fix doubling chunk send
+
+
+diff --git a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+index c5df121d6194a97b20dc390698991b9c72dba538..5e2fa65ce21f63913fddf612d4b2e5da1a1d0f46 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
++++ b/src/main/java/io/papermc/paper/chunk/system/RegionizedPlayerChunkLoader.java
+@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
+ import it.unimi.dsi.fastutil.longs.LongComparator;
+ import it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.network.protocol.Packet;
+ import net.minecraft.network.protocol.game.ClientboundSetChunkCacheCenterPacket;
+ import net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket;
+@@ -480,12 +481,23 @@ public class RegionizedPlayerChunkLoader {
+         }
+ 
+         private void sendChunk(final int chunkX, final int chunkZ) {
++            //Molia start - Fix doubling chunk send
++            if (this.sentChunks.contains(CoordinateUtils.getChunkKey(chunkX, chunkZ)) && MoliaConfig.fixDoublingChunkSend){
++                return;
++            }
++            //Molia end
++
+             if (this.sentChunks.add(CoordinateUtils.getChunkKey(chunkX, chunkZ))) {
+                 this.world.getChunkSource().chunkMap.updateChunkTracking(this.player,
+                     new ChunkPos(chunkX, chunkZ), new MutableObject<>(), false, true); // unloaded, loaded
+                 return;
+             }
+-            throw new IllegalStateException();
++
++            //Molia start - Fix doubling chunk send
++            if (!MoliaConfig.fixDoublingChunkSend){
++                throw new IllegalStateException();
++            }
++            //Molia end
+         }
+ 
+         private void sendUnloadChunk(final int chunkX, final int chunkZ) {
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 92ad4c7105d5a5d8040d52c85d2274abf247d226..1ba77368ed3136e02dc79c9a692cb98d3904be27 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -9,6 +9,7 @@ import java.io.IOException;
+ public class MoliaConfig {
+     //All values
+     public static boolean fixCanNotMoveEntityOffMain = true;
++    public static boolean fixDoublingChunkSend = true;
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+@@ -16,6 +17,7 @@ public class MoliaConfig {
+ 
+     public static void loadAllValues(){
+         fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
++        fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
+         save();
+     }
+ 

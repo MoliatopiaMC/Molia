@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 22:33:34 +0800
+Subject: [PATCH] Add config for gravity block duping fixes
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 6104db764d03589f973ec0a303903762c0caf44c..37614dfb908a6c3f4a1d5d715e375c03abc4f321 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -14,6 +14,7 @@ public class MoliaConfig {
+     //All values
+     public static boolean fixCanNotMoveEntityOffMain = true;
+     public static boolean fixDoublingChunkSend = true;
++    public static boolean allowGravityBlockDupe = false;
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     public static boolean enableSuffocationOptimization = true;
+@@ -42,6 +43,7 @@ public class MoliaConfig {
+     public static void loadAllValues(){
+         fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
+         fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
++        allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+ 
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
+diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index 34b3541603b8cca16c7d62f3981d7ce3e8be0dbe..bf763869640298fc2e2fcd9b8d832d097f747683 100644
+--- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
+ import java.util.Iterator;
+ import java.util.function.Predicate;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.CrashReportCategory;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+@@ -133,7 +135,7 @@ public class FallingBlockEntity extends Entity {
+     @Override
+     public void tick() {
+         // Paper start - fix sand duping
+-        if (this.isRemoved()) {
++        if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+             return;
+         }
+         // Paper end - fix sand duping
+@@ -150,7 +152,7 @@ public class FallingBlockEntity extends Entity {
+             this.move(MoverType.SELF, this.getDeltaMovement());
+ 
+             // Paper start - fix sand duping
+-            if (this.isRemoved()) {
++            if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+                 return;
+             }
+             // Paper end - fix sand duping

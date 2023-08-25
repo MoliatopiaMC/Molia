@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:33:39 +0800
+Subject: [PATCH] Pufferfish Reduce entity allocations
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 2552459e9232b8b3904e874aaba7d991695f9ae8..238cefbf40c2b4e18e2a8ee7819d10c28d6cb98d 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -435,6 +435,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     public UUID getOriginWorld() {
+         return this.originWorld;
+     }
++
++    // Pufferfish start
++    public final BlockPos.MutableBlockPos cachedBlockPos = new BlockPos.MutableBlockPos(); // used where needed
++    // Pufferfish end
++
+     // Paper end
+     public float getBukkitYaw() {
+         return this.yRot;
+diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+index dd1102d5291ef6f18e82400a6d8a0a376cc071e9..e283eb57c25f7de222f9d09dca851169f5f6e488 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
++++ b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+@@ -23,9 +23,11 @@ public class AttributeMap {
+     private final Map<Attribute, AttributeInstance> attributes = Maps.newHashMap();
+     private final Set<AttributeInstance> dirtyAttributes = Sets.newHashSet();
+     private final AttributeSupplier supplier;
++    private final java.util.function.Function<Attribute, AttributeInstance> createInstance; // Pufferfish
+ 
+     public AttributeMap(AttributeSupplier defaultAttributes) {
+         this.supplier = defaultAttributes;
++        this.createInstance = attribute -> this.supplier.createInstance(this::onAttributeModified, attribute); // Pufferfish
+     }
+ 
+     private void onAttributeModified(AttributeInstance instance) {
+@@ -45,11 +47,10 @@ public class AttributeMap {
+         }).collect(Collectors.toList());
+     }
+ 
++
+     @Nullable
+     public AttributeInstance getInstance(Attribute attribute) {
+-        return this.attributes.computeIfAbsent(attribute, (attributex) -> {
+-            return this.supplier.createInstance(this::onAttributeModified, attributex);
+-        });
++        return this.attributes.computeIfAbsent(attribute, this.createInstance); // Pufferfish - cache lambda, as for some reason java allocates it anyways
+     }
+ 
+     @Nullable

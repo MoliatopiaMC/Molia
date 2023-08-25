@@ -1,0 +1,77 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:02:58 +0800
+Subject: [PATCH] Fix can not move entity off main
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index d334b3aa4f311f57f2c41ced6c2265c817b78a76..92ad4c7105d5a5d8040d52c85d2274abf247d226 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -8,12 +8,14 @@ import java.io.IOException;
+ 
+ public class MoliaConfig {
+     //All values
++    public static boolean fixCanNotMoveEntityOffMain = true;
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+     private static final File CONFIG_FILE = new File("molia.yml");
+ 
+     public static void loadAllValues(){
++        fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
+         save();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 8b28f6fed78cbad95b7943efb05099edd9eeed57..d19bc5016b67221765bc58dca6de9c72faeec7dc 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
+ import com.google.common.collect.Sets;
+ import com.google.common.collect.UnmodifiableIterator;
+ import com.mojang.logging.LogUtils;
++import io.papermc.paper.util.TickThread;
+ import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+ import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
+ import java.util.Arrays;
+@@ -24,6 +25,8 @@ import java.util.function.BiConsumer;
+ import java.util.function.Predicate;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.BlockUtil;
+ import net.minecraft.CrashReport;
+ import net.minecraft.CrashReportCategory;
+@@ -1120,7 +1123,29 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+                     }
+                 }
+ 
+-                this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
++                //Molia start - Fix can not move entity off main
++                var finalX = this.getX() + vec3d1.x;
++                var finalY = this.getY() + vec3d1.y;
++                var finalZ = this.getZ() + vec3d1.z;
++
++                if (MoliaConfig.fixCanNotMoveEntityOffMain){
++                    if (TickThread.isTickThreadFor((ServerLevel) this.level,(int)finalX >> 4,(int)finalZ >> 4)){
++                        this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
++                    }else {
++                        this.teleportAsync(
++                                ((ServerLevel) this.level),
++                                this.position().add(vec3d1),
++                                this.getYRot(),
++                                this.getXRot(),
++                                null,
++                                PlayerTeleportEvent.TeleportCause.UNKNOWN,
++                                Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS, null
++                        );
++                    }
++                }else{
++                    this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
++                }
++                //Molia end
+             }
+ 
+             this.level().getProfiler().pop();

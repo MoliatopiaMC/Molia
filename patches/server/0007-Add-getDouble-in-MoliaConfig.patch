@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:18:48 +0800
+Subject: [PATCH] Add getDouble in MoliaConfig
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 1ba77368ed3136e02dc79c9a692cb98d3904be27..f81d8ad303158ee9ad7d38025d187da89ebf5b3c 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -32,6 +32,11 @@ public class MoliaConfig {
+         loadAllValues();
+     }
+ 
++    public static double getDouble(String key,double def){
++        configEntry.addDefault(key,def);
++        return configEntry.getDouble(key);
++    }
++
+     public static void save(){
+         try {
+             configEntry.save(CONFIG_FILE);

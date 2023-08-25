@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 21:22:45 +0800
+Subject: [PATCH] Pufferfish Optimize entity coordinate key
+
+
+diff --git a/src/main/java/io/papermc/paper/util/MCUtil.java b/src/main/java/io/papermc/paper/util/MCUtil.java
+index ff6716210d13db4472c67a56003b24c7b0af8224..72a124b09e664f9eac076dc75216da72d0dd08b3 100644
+--- a/src/main/java/io/papermc/paper/util/MCUtil.java
++++ b/src/main/java/io/papermc/paper/util/MCUtil.java
+@@ -212,7 +212,7 @@ public final class MCUtil {
+     }
+ 
+     public static long getCoordinateKey(final Entity entity) {
+-        return ((long)(MCUtil.fastFloor(entity.getZ()) >> 4) << 32) | ((MCUtil.fastFloor(entity.getX()) >> 4) & 0xFFFFFFFFL);
++        return ((long)(entity.blockPosition.getZ() >> 4) << 32) | ((entity.blockPosition.getX() >> 4) & 0xFFFFFFFFL); // Gale - Pufferfish - optimize entity coordinate key - eliminate double->long cast in hotpath
+     }
+ 
+     public static long getCoordinateKey(final ChunkPos pair) {
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index d19bc5016b67221765bc58dca6de9c72faeec7dc..2552459e9232b8b3904e874aaba7d991695f9ae8 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -309,7 +309,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     public double yo;
+     public double zo;
+     private Vec3 position;
+-    private BlockPos blockPosition;
++    public BlockPos blockPosition; // Gale - Pufferfish - optimize entity coordinate key - private -> public
+     private ChunkPos chunkPosition;
+     private Vec3 deltaMovement;
+     private float yRot;
