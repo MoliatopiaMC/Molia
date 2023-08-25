@@ -76,13 +76,13 @@ paperweight {
     remapRepo.set("https://maven.fabricmc.net/")
     decompileRepo.set("https://maven.quiltmc.org/")
 
-    useStandardUpstream("kaiiju") {
-        url.set(github("KaiijuMC", "Kaiiju"))
-        ref.set(providers.gradleProperty("kaiijuCommit"))
+    useStandardUpstream("folia") {
+        url.set(github("PaperMC", "Folia"))
+        ref.set(providers.gradleProperty("foliaCommit"))
 
         withStandardPatcher {
-            apiSourceDirPath.set("kaiiju-api")
-            serverSourceDirPath.set("kaiiju-server")
+            apiSourceDirPath.set("Folia-API")
+            serverSourceDirPath.set("Folia-Server")
 
 
             apiPatchDir.set(layout.projectDirectory.dir("patches/api"))
