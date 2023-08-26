@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Sat, 26 Aug 2023 11:25:19 +0800
+Subject: [PATCH] Add config for serverModName
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index c52a0ec7b2f9468b66becec446357140d6c82d80..f20f39bd060c57f196b0dc309a4679fcf2589f51 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -34,6 +34,7 @@ public class MoliaConfig {
+     public static boolean fakeplayerResident = false;
+     public static List<String> unableFakeplayerNames = Lists.newArrayList();
+     public static int fakeplayerLimit = 10;
++    public static String serverModName = "Molia";
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+@@ -67,6 +68,7 @@ public class MoliaConfig {
+         fakeplayerSkipSleep = getBoolean("gameplay.leaves.fakeplayer.fakeplayer_skip_sleep",fakeplayerResident);
+         openFakeplayerInventory = getBoolean("gameplay.leaves.fakeplayer.open_inventory",openFakeplayerInventory);
+         fakeplayerResident = getBoolean("gameplay.leaves.fakeplayer.fakeplayer_resident",fakeplayerResident);
++        serverModName = getString("gameplay.server_mod_name",serverModName);
+         save();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index e4840801dc6c97f2705f7f966fe2cb806c436603..b1adb4000987021be2c5e3ac1184f3266aae3a57 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -53,6 +53,8 @@ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ import javax.imageio.ImageIO;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.CrashReport;
+ import net.minecraft.ReportedException;
+ import net.minecraft.SharedConstants;
+@@ -1816,7 +1818,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+     @DontObfuscate
+     public String getServerModName() {
+-        return "Molia"; //Molia - Molia > // Folia - Folia > // Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
++        return MoliaConfig.serverModName; //Molia - Molia > // Folia - Folia > // Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
+     }
+ 
+     public SystemReport fillSystemReport(SystemReport details) {
