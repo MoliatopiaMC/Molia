@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Sat, 26 Aug 2023 21:45:21 +0800
+Subject: [PATCH] Fix bot can not create
+
+
+diff --git a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
+index 3303e96c87df7d50d9e9e8a29a2296c72b041e34..4520180e2c7491dd47995278d6c892ea3be592dd 100644
+--- a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
++++ b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
+@@ -154,7 +154,7 @@ public class ServerBot extends ServerPlayer {
+                 Bukkit.broadcastMessage(event.getJoinMessage());
+             }
+ 
+-            bot.teleportTo(location.getX(), location.getY(), location.getZ());
++            bot.getBukkitEntity().teleportAsync(location).join();
+             bot.setRot(location.getYaw(), location.getPitch());
+             bot.getBukkitEntity().setRotation(location.getYaw(), location.getPitch());
+             world.addFreshEntity(bot, CreatureSpawnEvent.SpawnReason.COMMAND);
