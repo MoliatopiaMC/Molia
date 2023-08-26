@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Sat, 26 Aug 2023 21:20:14 +0800
+Subject: [PATCH] Fix and adjust tpsbar
+
+
+diff --git a/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+index e93daefd27a831deda5faa5c596a8e3c587c03ec..3122468645cea20faf2dc635140f5002a5df3697 100644
+--- a/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
++++ b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+@@ -28,6 +28,7 @@ public class GlobalServerTpsBar {
+     protected static final MinecraftInternalPlugin NULL_PLUGIN = new MinecraftInternalPlugin();
+     protected static final Map<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> bossBars = new Reference2ObjectLinkedOpenHashMap<>();
+     protected static final List<Player> visibleExclude = Lists.newCopyOnWriteArrayList();
++    protected static final List<Player> addedPlayers = Lists.newArrayList();
+ 
+     public static void init(){
+         Bukkit.getAsyncScheduler().runAtFixedRate(NULL_PLUGIN,c -> {
+@@ -63,15 +64,18 @@ public class GlobalServerTpsBar {
+             final BossBar bossBar = entry.getValue();
+ 
+             final TickData.TickReportData reportData = region.getData().getRegionSchedulingHandle().getTickReport5s(System.nanoTime());
+-            final TickData.SegmentData tpsData = reportData.tpsData().segmentAll();
+-            final double mspt = reportData.timePerTickData().segmentAll().average() / 1.0E6;
+-            updateTpsBar(tpsData.average(),mspt,bossBar);
++
++            if (reportData != null){
++                final TickData.SegmentData tpsData = reportData.tpsData().segmentAll();
++                final double mspt = reportData.timePerTickData().segmentAll().average() / 1.0E6;
++                updateTpsBar(tpsData.average(),mspt,bossBar);
++            }
+         }
+     }
+ 
+     private static void updateTpsBar(double tps, double mspt, @NotNull BossBar bar){
+         //TODO Complete it
+-        bar.setTitle("TPS: "+tps+" MSPT:"+mspt);
++        bar.setTitle("TPS: "+String.format("%.2f", tps)+" MSPT:"+String.format("%.2f",mspt));
+         bar.setColor(barColorFromTps(tps));
+         bar.setProgress(Math.min(mspt / 50,1.0));
+     }
+@@ -97,14 +101,29 @@ public class GlobalServerTpsBar {
+             final ServerPlayer nmsEntity = ((CraftPlayer) player).getHandle();
+             final ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData> region = ((ServerLevel) nmsEntity.level()).regioniser.getRegionAtUnsynchronised(nmsEntity.sectionX, nmsEntity.sectionZ);
+ 
+-            if (region != null && !bossBars.containsKey(region)){
+-                //TODO Complete
+-                final BossBar bossBar = new CraftBossBar("TPS : NaN MSPT: NaN",BarColor.PURPLE,BarStyle.SEGMENTED_20);
+-                bossBars.put(region,bossBar);
++            if (region != null){
++                BossBar bossBar = bossBars.get(region);
++                if (bossBar == null){
++                    //TODO Complete
++                    final BossBar newBossBar = new CraftBossBar("TPS : NaN MSPT: NaN",BarColor.PURPLE,BarStyle.SEGMENTED_20);
++                    bossBars.put(region,newBossBar);
++                    bossBar = newBossBar;
++                }
++
++                if (!bossBar.getPlayers().contains(player) && !addedPlayers.contains(player)){
++                    bossBar.addPlayer(player);
++                    addedPlayers.add(player);
++                }
++            }
++        }
+ 
+-                bossBar.addPlayer(player);
++        final List<Player> playersToDrop = new ArrayList<>();
++        for (Player player : addedPlayers){
++            if (!Bukkit.getOnlinePlayers().contains(player)){
++                playersToDrop.add(player);
+             }
+         }
++        addedPlayers.removeAll(playersToDrop);
+ 
+         final List<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>> barsToRemove = new ArrayList<>();
+         for (Map.Entry<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> entry : bossBars.entrySet()){
