@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Sun, 27 Aug 2023 11:18:55 +0800
+Subject: [PATCH] Fix bot can not create
+
+
+diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
+index 7cf1eb4eb3d2fe9310f9272ec53208632b87b49b..fa77046fc92218d7cd3fc7958391eff2aa548def 100644
+--- a/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
++++ b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
+@@ -20,6 +20,7 @@ public class BotCreateEvent extends Event implements Cancellable {
+     private boolean cancel = false;
+ 
+     public BotCreateEvent(@NotNull final String who, @NotNull final String skin, @NotNull final Location createLocation, @Nullable final String joinMessage) {
++        super(true);
+         this.bot = who;
+         this.skin = skin;
+         this.joinMessage = joinMessage;
