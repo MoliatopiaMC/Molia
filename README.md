@@ -7,6 +7,8 @@
 - Fork of [Folia](https://github.com/PaperMC/Folia) for better performance.
 - Micro-optimizations
 - Variable entity wake-up
+- Configurable vanilla features
+- Tpsbar support
   
 ## Downloads
 
