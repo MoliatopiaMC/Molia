@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Tue, 29 Aug 2023 08:51:48 +0800
+Subject: [PATCH] Fix incorrect check in gravity block duping
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index bf763869640298fc2e2fcd9b8d832d097f747683..2af3535a35b6cc3c30009dbebe427acb28c5f87d 100644
+--- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -135,7 +135,7 @@ public class FallingBlockEntity extends Entity {
+     @Override
+     public void tick() {
+         // Paper start - fix sand duping
+-        if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
++        if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+             return;
+         }
+         // Paper end - fix sand duping
+@@ -152,7 +152,7 @@ public class FallingBlockEntity extends Entity {
+             this.move(MoverType.SELF, this.getDeltaMovement());
+ 
+             // Paper start - fix sand duping
+-            if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
++            if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+                 return;
+             }
+             // Paper end - fix sand duping

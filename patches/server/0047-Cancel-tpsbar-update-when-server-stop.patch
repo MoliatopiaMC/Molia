@@ -1,0 +1,65 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Tue, 29 Aug 2023 21:08:52 +0800
+Subject: [PATCH] Cancel tpsbar update when server stop
+
+
+diff --git a/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+index 3122468645cea20faf2dc635140f5002a5df3697..71a264fa7c16946ffb8dbac0273c4a05c8827700 100644
+--- a/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
++++ b/src/main/java/me/earthme/molia/functions/GlobalServerTpsBar.java
+@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
+ import io.papermc.paper.threadedregions.ThreadedRegionizer;
+ import io.papermc.paper.threadedregions.TickData;
+ import io.papermc.paper.threadedregions.TickRegions;
++import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+ import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.server.level.ServerPlayer;
+@@ -29,9 +30,11 @@ public class GlobalServerTpsBar {
+     protected static final Map<ThreadedRegionizer.ThreadedRegion<TickRegions.TickRegionData, TickRegions.TickRegionSectionData>, BossBar> bossBars = new Reference2ObjectLinkedOpenHashMap<>();
+     protected static final List<Player> visibleExclude = Lists.newCopyOnWriteArrayList();
+     protected static final List<Player> addedPlayers = Lists.newArrayList();
++    protected static volatile ScheduledTask tpsbarTask = null;
+ 
+     public static void init(){
+         Bukkit.getAsyncScheduler().runAtFixedRate(NULL_PLUGIN,c -> {
++            tpsbarTask = c;
+             try {
+                 update();
+             }catch (Exception e){
+@@ -40,6 +43,14 @@ public class GlobalServerTpsBar {
+         },1,1, TimeUnit.SECONDS);
+     }
+ 
++    public static void onServerStop(){
++        if (tpsbarTask == null){
++            return;
++        }
++
++        tpsbarTask.cancel();
++    }
++
+     public static boolean isPlayerVisible(Player player){
+         return !visibleExclude.contains(player);
+     }
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 9e18fde812c17a6738f07cd20211ea77361d8066..cff91fee161809f1a0a043fca66d4a5c888cb6e5 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -21,6 +21,7 @@ import java.util.function.BooleanSupplier;
+ import javax.annotation.Nullable;
+ 
+ import me.earthme.molia.MoliaConfig;
++import me.earthme.molia.functions.GlobalServerTpsBar;
+ import net.minecraft.DefaultUncaughtExceptionHandler;
+ import net.minecraft.DefaultUncaughtExceptionHandlerWithName;
+ import net.minecraft.SharedConstants;
+@@ -814,6 +815,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+     @Override
+     public void stopServer() {
+         super.stopServer();
++        GlobalServerTpsBar.onServerStop(); //Molia
+         //Util.shutdownExecutors(); // Paper - moved into super
+         SkullBlockEntity.clear();
+     }
