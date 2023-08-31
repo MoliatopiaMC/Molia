@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Thu, 31 Aug 2023 19:00:08 +0800
+Subject: [PATCH] Fixe fakeplayer removing issue
+
+
+diff --git a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
+index 53e0e370ed8185b457b1670010a8841d800dcbee..dcbfd04b51a618dcb030888e177e545225aa20ad 100644
+--- a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
++++ b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
+@@ -616,13 +616,9 @@ public class ServerBot extends ServerPlayer {
+         Iterator<ServerBot> iterator = bots.iterator();
+         while (iterator.hasNext()) {
+             ServerBot bot = iterator.next();
+-            if (TickThread.isTickThreadFor(bot)){
++            SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
+                 bot.die(bot.damageSources().fellOutOfWorld());
+-            }else{
+-                SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
+-                    bot.die(bot.damageSources().fellOutOfWorld());
+-                });
+-            }
++            });
+         }
+         return true;
+     }
