@@ -5,7 +5,7 @@ Subject: [PATCH] Gale Optimize sun burn tick
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 755329fac822d200d1aa903c01066b0bbd7c6e4b..0a568aa911e32464cb218ef93fad398039f0dac3 100644
+index 9bc9bae8faea19bb065850a91ea67efef6901da2..89544a19d0ce49ed5dc32823ecb249c4ddf2d08f 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -308,7 +308,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -17,7 +17,7 @@ index 755329fac822d200d1aa903c01066b0bbd7c6e4b..0a568aa911e32464cb218ef93fad3980
      public BlockPos blockPosition; // Gale - Pufferfish - optimize entity coordinate key - private -> public
      private ChunkPos chunkPosition;
      private Vec3 deltaMovement;
-@@ -2032,9 +2032,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2035,9 +2035,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      /** @deprecated */
      @Deprecated
      public float getLightLevelDependentMagicValue() {

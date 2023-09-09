@@ -5,7 +5,7 @@ Subject: [PATCH] Leaves fakeplayer support
 
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index c54d5f254a4e7055470a4868187de3a18c21d0e5..5e1d7d24ed16a0dc0a431dd869abe7141194f4db 100644
+index 26b32a5935aaed9b1fe356af0208a778144aac87..166e67c1d61d2e8e409051d11da3707f953c8191 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
 @@ -57,6 +57,7 @@ import org.jetbrains.annotations.Contract;
@@ -16,7 +16,7 @@ index c54d5f254a4e7055470a4868187de3a18c21d0e5..5e1d7d24ed16a0dc0a431dd869abe714
  
  /**
   * Represents the Bukkit core, for version and Server singleton handling
-@@ -2718,6 +2719,17 @@ public final class Bukkit {
+@@ -2760,6 +2761,17 @@ public final class Bukkit {
      }
      // Folia end - region threading API
  
@@ -35,7 +35,7 @@ index c54d5f254a4e7055470a4868187de3a18c21d0e5..5e1d7d24ed16a0dc0a431dd869abe714
      public static Server.Spigot spigot() {
          return server.spigot();
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index f77553fc70bc1f3f18af50e53c0041bbaaebab9a..dfe75b64c0e1c1b7c1053cc35d8057b76f8aff76 100644
+index b6a8217b97842cd07af24fadb21e0e44226e5bb9..c06409071463d79c3e2484dc68b47b1ef24a581d 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
 @@ -57,12 +57,22 @@ import org.bukkit.util.CachedServerIcon;

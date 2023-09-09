@@ -44,7 +44,7 @@ index 3122468645cea20faf2dc635140f5002a5df3697..71a264fa7c16946ffb8dbac0273c4a05
          return !visibleExclude.contains(player);
      }
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index 9e18fde812c17a6738f07cd20211ea77361d8066..cff91fee161809f1a0a043fca66d4a5c888cb6e5 100644
+index 7cdeafd479b7079db2aa29c88a6a95285ee122ce..1c7402f2db03943431b29d7413ee4dd9b1e6163f 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -21,6 +21,7 @@ import java.util.function.BooleanSupplier;
@@ -55,7 +55,7 @@ index 9e18fde812c17a6738f07cd20211ea77361d8066..cff91fee161809f1a0a043fca66d4a5c
  import net.minecraft.DefaultUncaughtExceptionHandler;
  import net.minecraft.DefaultUncaughtExceptionHandlerWithName;
  import net.minecraft.SharedConstants;
-@@ -814,6 +815,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -821,6 +822,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
      @Override
      public void stopServer() {
          super.stopServer();

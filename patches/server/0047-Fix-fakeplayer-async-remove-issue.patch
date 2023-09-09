@@ -5,7 +5,7 @@ Subject: [PATCH] Fix fakeplayer async remove issue
 
 
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 1ccd37e85e0b50aea609d4aac9d42f9fc14fe079..8b4bd6cc7f1f5e7df56114765e14af4d1ce67e8f 100644
+index fa7c99aae9011f3111d145fb85158eee3b5ee958..ec3b14457146d1fa18a475e94114d029466b7880 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -27,6 +27,9 @@ import java.util.UUID;

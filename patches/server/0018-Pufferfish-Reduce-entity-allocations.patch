@@ -5,10 +5,10 @@ Subject: [PATCH] Pufferfish Reduce entity allocations
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 2552459e9232b8b3904e874aaba7d991695f9ae8..238cefbf40c2b4e18e2a8ee7819d10c28d6cb98d 100644
+index 07dca428089fa2e3a214f7956cee06ece4b6db37..3a5d9f5d8ce6b2bffbeeb329a44a0bace5478fcd 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -435,6 +435,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -436,6 +436,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public UUID getOriginWorld() {
          return this.originWorld;
      }

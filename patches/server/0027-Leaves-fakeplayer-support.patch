@@ -95,7 +95,7 @@ index 0000000000000000000000000000000000000000..6b146fe9495bcb84930fe71f6dbc0f98
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 5e23e9e877f02b44e54a4dc2e87255b604591601..e4840801dc6c97f2705f7f966fe2cb806c436603 100644
+index b9f30063996b9309c80625cbd4c9f33d6ba35c34..a37933e496c9adc16394f124776f58ef363a6c51 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -127,6 +127,7 @@ import net.minecraft.util.profiling.metrics.storage.MetricsPersister;
@@ -106,7 +106,7 @@ index 5e23e9e877f02b44e54a4dc2e87255b604591601..e4840801dc6c97f2705f7f966fe2cb80
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.ai.village.VillageSiege;
  import net.minecraft.world.entity.npc.CatSpawner;
-@@ -676,6 +677,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -675,6 +676,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          }
          // Paper end
  
@@ -115,7 +115,7 @@ index 5e23e9e877f02b44e54a4dc2e87255b604591601..e4840801dc6c97f2705f7f966fe2cb80
          this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD);
          this.server.getPluginManager().callEvent(new ServerLoadEvent(ServerLoadEvent.LoadType.STARTUP));
          this.connection.acceptConnections();
-@@ -1012,6 +1015,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1011,6 +1014,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          MinecraftServer.LOGGER.info("Stopping server");
          Commands.COMMAND_SENDING_POOL.shutdownNow(); // Paper - Shutdown and don't bother finishing
          MinecraftTimings.stopServer(); // Paper
@@ -148,7 +148,7 @@ index acc49f66bf34e2507d0ee6fec0a56b11bfc68f46..7fc87841fd72fc9b5bca4fbdffd378c7
          AdvancementProgress advancementprogress = this.getOrStartProgress(advancement);
          boolean flag1 = advancementprogress.isDone();
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index 68c8e99da7aa727e9584c3d7daed9f505ee8b552..9e18fde812c17a6738f07cd20211ea77361d8066 100644
+index fbb65ba816307ec9d113a5d847aef9b0ec42d21e..7cdeafd479b7079db2aa29c88a6a95285ee122ce 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -224,6 +224,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
@@ -160,7 +160,7 @@ index 68c8e99da7aa727e9584c3d7daed9f505ee8b552..9e18fde812c17a6738f07cd20211ea77
          this.setPvpAllowed(dedicatedserverproperties.pvp);
          this.setFlightAllowed(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index cf18ea69915fd195e1ea4b8840d528a643ff8b8a..620c26691eeacd168ea58324b331afe32be652f3 100644
+index 7cb6a0b99c8e51f7f767b704071473c5d8bded7d..182b10556578b58bca161f185bce92261f6992ff 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -185,6 +185,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
@@ -232,7 +232,7 @@ index cf18ea69915fd195e1ea4b8840d528a643ff8b8a..620c26691eeacd168ea58324b331afe3
                  PlayerChangedWorldEvent changeEvent = new PlayerChangedWorldEvent(this.getBukkitEntity(), worldserver1.getWorld());
                  this.level().getCraftServer().getPluginManager().callEvent(changeEvent);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 86b9d57f2c0132b8ac30045e766c01f314d3b6f3..1ccd37e85e0b50aea609d4aac9d42f9fc14fe079 100644
+index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee3b5ee958 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -81,6 +81,7 @@ import net.minecraft.server.ServerScoreboard;
@@ -271,7 +271,7 @@ index 86b9d57f2c0132b8ac30045e766c01f314d3b6f3..1ccd37e85e0b50aea609d4aac9d42f9f
          final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
  
          if (jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure
-@@ -1169,12 +1184,17 @@ public abstract class PlayerList {
+@@ -1177,12 +1192,17 @@ public abstract class PlayerList {
  
      public String[] getPlayerNamesArray() {
          List<ServerPlayer> players = new java.util.ArrayList<>(this.players); // Folia start - region threading
@@ -290,7 +290,7 @@ index 86b9d57f2c0132b8ac30045e766c01f314d3b6f3..1ccd37e85e0b50aea609d4aac9d42f9f
  
          return astring;
      }
-@@ -1680,4 +1700,16 @@ public abstract class PlayerList {
+@@ -1688,4 +1708,16 @@ public abstract class PlayerList {
      public boolean isAllowCheatsForAllPlayers() {
          return this.allowCheatsForAllPlayers;
      }
@@ -308,10 +308,10 @@ index 86b9d57f2c0132b8ac30045e766c01f314d3b6f3..1ccd37e85e0b50aea609d4aac9d42f9f
 +    // Leaves end - fakeplayer support
  }
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index e9b3f486970ba0151bec7b5f6a83546443243b0d..755329fac822d200d1aa903c01066b0bbd7c6e4b 100644
+index 4bad93036bf7d18785bed9dab3a615fa9fd8c980..9bc9bae8faea19bb065850a91ea67efef6901da2 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -1483,7 +1483,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1486,7 +1486,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return offsetFactor;
      }
  
@@ -371,7 +371,7 @@ index 706b354ac9a1a6a4a1e61b2a109180d1dd22bbbd..f13f21dbd50f63a71276837abbcf82e0
          FeatureFlagSet featureflagset = player.level().enabledFeatures();
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index ed3b14dfdecabc42cc26e7ec450912e0da69ac16..3140b04236b36260029efb7ffd25348d0744440e 100644
+index 2074570073f6585a592e7520c01e234f41f0f093..9037b535594c37d115232d3af4b5056c1bd0a53d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -260,6 +260,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -404,10 +404,10 @@ index ed3b14dfdecabc42cc26e7ec450912e0da69ac16..3140b04236b36260029efb7ffd25348d
      public final io.papermc.paper.threadedregions.scheduler.RegionScheduler getRegionScheduler() {
          return this.regionizedScheduler;
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
-index 19b47478d318edce1242c2a5ddd73da963a24595..23a82f08ad51ca8d209a87e403899ee1fe8a78b9 100644
+index ffc3c9908281a3018ca5b4e244690d459c456d83..718cc3b74c6e74f450bae9e665eb34f77c3f703c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
-@@ -191,6 +191,8 @@ import org.bukkit.plugin.Plugin;
+@@ -194,6 +194,8 @@ import org.bukkit.plugin.Plugin;
  import org.bukkit.util.BoundingBox;
  import org.bukkit.util.NumberConversions;
  import org.bukkit.util.Vector;
@@ -416,7 +416,7 @@ index 19b47478d318edce1242c2a5ddd73da963a24595..23a82f08ad51ca8d209a87e403899ee1
  
  import net.md_5.bungee.api.chat.BaseComponent; // Spigot
  
-@@ -226,7 +228,12 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+@@ -232,7 +234,12 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
          if (entity instanceof LivingEntity) {
              // Players
              if (entity instanceof net.minecraft.world.entity.player.Player) {

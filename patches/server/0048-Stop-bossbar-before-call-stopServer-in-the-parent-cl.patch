@@ -5,10 +5,10 @@ Subject: [PATCH] Stop bossbar before call stopServer in the parent class
 
 
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index cff91fee161809f1a0a043fca66d4a5c888cb6e5..8afd70ee2682531f8153415ca0185116f557b3a9 100644
+index 1c7402f2db03943431b29d7413ee4dd9b1e6163f..f7fa8cbe64c5cf8bfdc36e80325179cf1765b932 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -814,8 +814,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -821,8 +821,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
  
      @Override
      public void stopServer() {

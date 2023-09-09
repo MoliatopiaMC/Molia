@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wangxyper <wangxyper@163.com>
-Date: Fri, 25 Aug 2023 22:08:18 +0800
+Date: Sat, 9 Sep 2023 19:09:28 +0800
 Subject: [PATCH] Leaves Leaves Server Utils
 
 
@@ -31,18 +31,19 @@ index 46954db7ecd35ac4018fdf476df7c8020d7ce6c8..044c51ebb058fc36074fd178929e3279
      public PlayerAreaMap() {
          super();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 086ae527e6071235ad4f6c1d024dd6b33eae151e..e9b3f486970ba0151bec7b5f6a83546443243b0d 100644
+index 5b7c8d8ad82cfff8fad52e5fd7ee222b54615029..4bad93036bf7d18785bed9dab3a615fa9fd8c980 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -421,6 +421,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
-     private UUID originWorld;
-     public boolean freezeLocked = false; // Paper - Freeze Tick Lock API
-     public boolean collidingWithWorldBorder; // Paper
-+    private CompoundTag leavesData = new CompoundTag(); // Leaves - Leaves ex data
+@@ -500,6 +500,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+         return this.hardCollides;
+     }
  
-     public void setOrigin(@javax.annotation.Nonnull Location location) {
-         this.origin = location.toVector();
-@@ -2477,6 +2478,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
++    private CompoundTag leavesData = new CompoundTag(); // Leaves - Leaves ex data
++
+     public net.minecraft.server.level.FullChunkStatus chunkStatus;
+ 
+     public int sectionX = Integer.MIN_VALUE;
+@@ -2479,6 +2481,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  nbt.putBoolean("Paper.FreezeLock", true);
              }
              // Paper end
@@ -50,7 +51,7 @@ index 086ae527e6071235ad4f6c1d024dd6b33eae151e..e9b3f486970ba0151bec7b5f6a835464
              return nbt;
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Saving entity NBT");
-@@ -2645,6 +2647,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2647,6 +2650,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  freezeLocked = nbt.getBoolean("Paper.FreezeLock");
              }
              // Paper end
@@ -62,7 +63,7 @@ index 086ae527e6071235ad4f6c1d024dd6b33eae151e..e9b3f486970ba0151bec7b5f6a835464
  
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Loading entity NBT");
-@@ -2659,6 +2666,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2661,6 +2669,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return true;
      }
  

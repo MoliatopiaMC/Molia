@@ -5,10 +5,10 @@ Subject: [PATCH] Pufferfish Optimize entity coordinate key
 
 
 diff --git a/src/main/java/io/papermc/paper/util/MCUtil.java b/src/main/java/io/papermc/paper/util/MCUtil.java
-index ff6716210d13db4472c67a56003b24c7b0af8224..72a124b09e664f9eac076dc75216da72d0dd08b3 100644
+index cadb91c7f5ef80aac8513f246fdf481947fa0a17..602cb9da257aabcadc746c620e7d90abd528774e 100644
 --- a/src/main/java/io/papermc/paper/util/MCUtil.java
 +++ b/src/main/java/io/papermc/paper/util/MCUtil.java
-@@ -212,7 +212,7 @@ public final class MCUtil {
+@@ -215,7 +215,7 @@ public final class MCUtil {
      }
  
      public static long getCoordinateKey(final Entity entity) {
@@ -18,7 +18,7 @@ index ff6716210d13db4472c67a56003b24c7b0af8224..72a124b09e664f9eac076dc75216da72
  
      public static long getCoordinateKey(final ChunkPos pair) {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index d19bc5016b67221765bc58dca6de9c72faeec7dc..2552459e9232b8b3904e874aaba7d991695f9ae8 100644
+index 8ed500a51d88e3267a1a8ea6a318dc9c92459bf3..07dca428089fa2e3a214f7956cee06ece4b6db37 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -309,7 +309,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
