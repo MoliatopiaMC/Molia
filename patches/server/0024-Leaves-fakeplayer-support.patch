@@ -334,7 +334,7 @@ index 98e322e8833ecadcf3a19b42215e658671f77733..3ca9a206813cbf053f6636c0a06126e5
      private int timeUntilHooked;
      private float fishAngle;
 diff --git a/src/main/java/net/minecraft/world/inventory/AbstractContainerMenu.java b/src/main/java/net/minecraft/world/inventory/AbstractContainerMenu.java
-index 706b354ac9a1a6a4a1e61b2a109180d1dd22bbbd..f13f21dbd50f63a71276837abbcf82e0a72ff52c 100644
+index 71b7a091e56dd68da280d13318a393170967b042..0f18fff8f0b06aa427b13768f8b673d396e6afb3 100644
 --- a/src/main/java/net/minecraft/world/inventory/AbstractContainerMenu.java
 +++ b/src/main/java/net/minecraft/world/inventory/AbstractContainerMenu.java
 @@ -406,6 +406,8 @@ public abstract class AbstractContainerMenu {
@@ -346,7 +346,7 @@ index 706b354ac9a1a6a4a1e61b2a109180d1dd22bbbd..f13f21dbd50f63a71276837abbcf82e0
          if (actionType == ClickType.QUICK_CRAFT) {
              int i1 = this.quickcraftStatus;
  
-@@ -674,6 +676,23 @@ public abstract class AbstractContainerMenu {
+@@ -676,6 +678,23 @@ public abstract class AbstractContainerMenu {
  
      }
  

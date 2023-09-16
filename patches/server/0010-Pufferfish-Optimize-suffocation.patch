@@ -25,7 +25,7 @@ index 551577bccfe354ee8ea32b9f1da8e87e84d4ce48..3df8728ebe9f027757e288fe6b8a4878
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 29d5ac8178290d04636b9cf33e9617f0388987fc..d91638a108c75adf596ebe4080ec3099d02c05c6 100644
+index 17d6349ccdbb6ac91b2705be0b855e768423c50a..6b49e255293be0193056838e988720e0bc8a8270 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -19,6 +19,8 @@ import java.util.Optional;
