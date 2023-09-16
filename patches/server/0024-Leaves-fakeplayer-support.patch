@@ -232,10 +232,20 @@ index 7cb6a0b99c8e51f7f767b704071473c5d8bded7d..182b10556578b58bca161f185bce9226
                  PlayerChangedWorldEvent changeEvent = new PlayerChangedWorldEvent(this.getBukkitEntity(), worldserver1.getWorld());
                  this.level().getCraftServer().getPluginManager().callEvent(changeEvent);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee3b5ee958 100644
+index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..ec3b14457146d1fa18a475e94114d029466b7880 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
-@@ -81,6 +81,7 @@ import net.minecraft.server.ServerScoreboard;
+@@ -27,6 +27,9 @@ import java.util.UUID;
+ import java.util.function.Function;
+ import java.util.function.Predicate;
+ import javax.annotation.Nullable;
++
++import io.papermc.paper.util.TickThread;
++import me.earthme.molia.util.SchedulerUtil;
+ import net.minecraft.ChatFormatting;
+ import net.minecraft.FileUtil;
+ import net.minecraft.commands.CommandSourceStack;
+@@ -81,6 +84,7 @@ import net.minecraft.server.ServerScoreboard;
  import net.minecraft.tags.BlockTags;
  import net.minecraft.tags.TagNetworkSerialization;
  import net.minecraft.util.Mth;
@@ -243,7 +253,7 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee
  import net.minecraft.world.effect.MobEffectInstance;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.EntityType;
-@@ -101,6 +102,7 @@ import net.minecraft.world.scores.Objective;
+@@ -101,6 +105,7 @@ import net.minecraft.world.scores.Objective;
  import net.minecraft.world.scores.PlayerTeam;
  import net.minecraft.world.scores.Scoreboard; // Paper
  import net.minecraft.world.scores.Team;
@@ -251,7 +261,7 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee
  import org.slf4j.Logger;
  
  // CraftBukkit start
-@@ -422,6 +424,19 @@ public abstract class PlayerList {
+@@ -422,6 +427,25 @@ public abstract class PlayerList {
              //return; // Folia - region threading - must still allow the player to connect, as we must add to chunk map before handling disconnect
          }
  
@@ -259,7 +269,13 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee
 +        if (me.earthme.molia.MoliaConfig.fakeplayerSupport) {
 +            ServerBot bot = ServerBot.getBot(player.getScoreboardName().toLowerCase(java.util.Locale.ROOT));
 +            if (bot != null) {
-+                bot.die(bot.damageSources().fellOutOfWorld()); // Leaves - remove bot with the same name
++                if (TickThread.isTickThreadFor(bot)){
++                    bot.die(bot.damageSources().fellOutOfWorld()); // Leaves - remove bot with the same name
++                }else{
++                    SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
++                        bot.die(bot.damageSources().fellOutOfWorld()); // Leaves - remove bot with the same name
++                    });
++                }
 +                this.playersByName.put(player.getScoreboardName().toLowerCase(java.util.Locale.ROOT), player);
 +                this.playersByUUID.put(player.getUUID(), player);
 +            }
@@ -271,7 +287,7 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee
          final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
  
          if (jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure
-@@ -1177,12 +1192,17 @@ public abstract class PlayerList {
+@@ -1177,12 +1201,17 @@ public abstract class PlayerList {
  
      public String[] getPlayerNamesArray() {
          List<ServerPlayer> players = new java.util.ArrayList<>(this.players); // Folia start - region threading
@@ -290,7 +306,7 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..fa7c99aae9011f3111d145fb85158eee
  
          return astring;
      }
-@@ -1688,4 +1708,16 @@ public abstract class PlayerList {
+@@ -1688,4 +1717,16 @@ public abstract class PlayerList {
      public boolean isAllowCheatsForAllPlayers() {
          return this.allowCheatsForAllPlayers;
      }
@@ -432,12 +448,14 @@ index ffc3c9908281a3018ca5b4e244690d459c456d83..718cc3b74c6e74f450bae9e665eb34f7
              // Water Animals
 diff --git a/src/main/java/top/leavesmc/leaves/bot/BotCommand.java b/src/main/java/top/leavesmc/leaves/bot/BotCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..79aebbfd4a37b276c6759c30225f05569dca2c18
+index 0000000000000000000000000000000000000000..9a0beb3d38977ef908815844fe1a447d189e5cdc
 --- /dev/null
 +++ b/src/main/java/top/leavesmc/leaves/bot/BotCommand.java
-@@ -0,0 +1,254 @@
+@@ -0,0 +1,262 @@
 +package top.leavesmc.leaves.bot;
 +
++import io.papermc.paper.util.TickThread;
++import me.earthme.molia.util.SchedulerUtil;
 +import org.bukkit.Bukkit;
 +import org.bukkit.ChatColor;
 +import org.bukkit.Location;
@@ -599,6 +617,12 @@ index 0000000000000000000000000000000000000000..79aebbfd4a37b276c6759c30225f0556
 +            return;
 +        }
 +
++        if (!TickThread.isTickThreadFor(bot)){
++            SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
++                bot.die(bot.damageSources().fellOutOfWorld());
++            });
++            return;
++        }
 +        bot.die(bot.damageSources().fellOutOfWorld());
 +    }
 +
@@ -1152,10 +1176,10 @@ index 0000000000000000000000000000000000000000..daaece30b2a3983f1cc9ee9a851e8f37
 +}
 diff --git a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3303e96c87df7d50d9e9e8a29a2296c72b041e34
+index 0000000000000000000000000000000000000000..dcbfd04b51a618dcb030888e177e545225aa20ad
 --- /dev/null
 +++ b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
-@@ -0,0 +1,702 @@
+@@ -0,0 +1,705 @@
 +package top.leavesmc.leaves.bot;
 +
 +import com.google.common.collect.Lists;
@@ -1164,6 +1188,7 @@ index 0000000000000000000000000000000000000000..3303e96c87df7d50d9e9e8a29a2296c7
 +import com.google.gson.JsonObject;
 +import com.mojang.authlib.GameProfile;
 +import com.mojang.authlib.properties.Property;
++import io.papermc.paper.util.TickThread;
 +import me.earthme.molia.util.SchedulerUtil;
 +import net.minecraft.Util;
 +import net.minecraft.core.BlockPos;
@@ -1773,7 +1798,9 @@ index 0000000000000000000000000000000000000000..3303e96c87df7d50d9e9e8a29a2296c7
 +        Iterator<ServerBot> iterator = bots.iterator();
 +        while (iterator.hasNext()) {
 +            ServerBot bot = iterator.next();
-+            bot.die(bot.damageSources().fellOutOfWorld());
++            SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
++                bot.die(bot.damageSources().fellOutOfWorld());
++            });
 +        }
 +        return true;
 +    }
@@ -2791,171 +2818,6 @@ index 340eaca64c96180b895a075ce9e44402cd104eed..39e90dcff0de259373d7955021c29397
      }
 -
  }
-diff --git a/src/main/java/top/leavesmc/leaves/entity/Bot.java b/src/main/java/top/leavesmc/leaves/entity/Bot.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..8816683c795f9be6a4f112203cfac3f59d8faba5
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/entity/Bot.java
-@@ -0,0 +1,46 @@
-+package top.leavesmc.leaves.entity;
-+
-+import org.bukkit.entity.Player;
-+import org.jetbrains.annotations.NotNull;
-+import org.jetbrains.annotations.Nullable;
-+import top.leavesmc.leaves.entity.botaction.LeavesBotAction;
-+
-+/**
-+ * Represents a fakeplayer
-+ */
-+public interface Bot extends Player {
-+
-+    /**
-+     * Gets the fakeplayer skin
-+     *
-+     * @return fakeplayer skin name
-+     */
-+    @Nullable
-+    public String getSkinName();
-+
-+    /**
-+     * Gets the fakeplayer name without prefix and suffix
-+     *
-+     * @return fakeplayer real name
-+     */
-+    @NotNull
-+    public String getRealName();
-+
-+    /**
-+     * Sets the fakeplayer action with args.
-+     *
-+     * @param action action name
-+     * @param player player who create this action
-+     * @param args passed action arguments
-+     */
-+    public boolean setBotAction(@NotNull String action, @NotNull Player player, @NotNull String[] args);
-+
-+    /**
-+     * Sets the fakeplayer action with args.
-+     *
-+     * @param action leaves bot action
-+     * @param player player who create this action
-+     * @param args passed action arguments
-+     */
-+    public boolean setBotAction(@NotNull LeavesBotAction action, @NotNull Player player, @NotNull String[] args);
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/entity/BotManager.java b/src/main/java/top/leavesmc/leaves/entity/BotManager.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..f2258027b2ed4bfcf7feda2e9075b1a1a05a85b6
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/entity/BotManager.java
-@@ -0,0 +1,107 @@
-+package top.leavesmc.leaves.entity;
-+
-+import org.bukkit.Location;
-+import org.bukkit.util.Consumer;
-+import org.jetbrains.annotations.NotNull;
-+import org.jetbrains.annotations.Nullable;
-+import top.leavesmc.leaves.entity.botaction.CustomBotAction;
-+
-+import java.util.Collection;
-+import java.util.UUID;
-+
-+/**
-+ * Simple fakeplayer manager
-+ */
-+public interface BotManager {
-+
-+    /**
-+     * Gets a fakeplayer object by the given uuid.
-+     *
-+     * @param uuid the uuid to look up
-+     * @return a fakeplayer if one was found, null otherwise
-+     */
-+    @Nullable
-+    public Bot getBot(@NotNull UUID uuid);
-+
-+    /**
-+     * Gets a fakeplayer object by the given name.
-+     *
-+     * @param name the name to look up
-+     * @return a fakeplayer if one was found, null otherwise
-+     */
-+    @Nullable
-+    public Bot getBot(@NotNull String name);
-+
-+    /**
-+     * Creates a fakeplayer with given param.
-+     * <p>
-+     * prefix and suffix will not be added.
-+     *
-+     * @param name fakeplayer name
-+     * @param realName fakeplayer real name
-+     * @param skin fakeplayer skin arr
-+     * @param skinName fakeplayer skin name
-+     * @param location a location will create fakeplayer
-+     * @return a fakeplayer if success, null otherwise
-+     */
-+    @Nullable
-+    public Bot createBot(@NotNull String name, @NotNull String realName, @Nullable String[] skin, @Nullable String skinName, @NotNull Location location);
-+
-+    /**
-+     * Creates a fakeplayer with given param.
-+     *
-+     * @param name fakeplayer name
-+     * @param skinName fakeplayer skin name
-+     * @param location a location will create fakeplayer
-+     * @param consumer a consumer after create fakeplayer success
-+     */
-+    public void createBot(@NotNull String name, @Nullable String skinName, @NotNull Location location, @Nullable Consumer<Bot> consumer);
-+
-+    /**
-+     * Removes a fakeplayer object by the given name.
-+     *
-+     * @param name the name to look up
-+     */
-+    public void removeBot(@NotNull String name);
-+
-+    /**
-+     * Removes a fakeplayer object by the given uuid.
-+     *
-+     * @param uuid the uuid to look up
-+     */
-+    public void removeBot(@NotNull UUID uuid);
-+
-+    /**
-+     * Removes all fakeplayers.
-+     */
-+    public void removeAllBots();
-+
-+    /**
-+     * Save fakeplayers data if resident-fakeplayer is true, or remove all fakeplayer.
-+     */
-+    public void saveOrRemoveAllBots();
-+
-+    /**
-+     * Gets a view of all currently logged in fakeplayers. This view is a reused object, making some operations like Collection.size() zero-allocation.
-+     *
-+     * @return a view of fakeplayers.
-+     */
-+    public Collection<Bot> getBots();
-+
-+    /**
-+     * Register a custom bot action.
-+     *
-+     * @param name action name
-+     * @param action action executor
-+     * @return true if success, or false
-+     */
-+    public boolean registerCustomBotAction(String name, CustomBotAction action);
-+
-+    /**
-+     * Unregister a custom bot action.
-+     *
-+     * @param name action name
-+     * @return true if success, or false
-+     */
-+    public boolean unregisterCustomBotAction(String name);
-+}
 diff --git a/src/main/java/top/leavesmc/leaves/entity/CraftBot.java b/src/main/java/top/leavesmc/leaves/entity/CraftBot.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..e30ce391f638778fc805ca75287917af99b37443
@@ -3024,14 +2886,16 @@ index 0000000000000000000000000000000000000000..e30ce391f638778fc805ca75287917af
 +}
 diff --git a/src/main/java/top/leavesmc/leaves/entity/CraftBotManager.java b/src/main/java/top/leavesmc/leaves/entity/CraftBotManager.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..df5796bfa333a287ccd486be9a9cdae4ca5dc757
+index 0000000000000000000000000000000000000000..2e7ce8fca5a89d0b8aba99603c15539cd52e66ba
 --- /dev/null
 +++ b/src/main/java/top/leavesmc/leaves/entity/CraftBotManager.java
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,107 @@
 +package top.leavesmc.leaves.entity;
 +
 +import com.google.common.base.Function;
 +import com.google.common.collect.Lists;
++import io.papermc.paper.util.TickThread;
++import me.earthme.molia.util.SchedulerUtil;
 +import org.bukkit.Location;
 +import org.bukkit.util.Consumer;
 +import org.jetbrains.annotations.NotNull;
@@ -3084,6 +2948,12 @@ index 0000000000000000000000000000000000000000..df5796bfa333a287ccd486be9a9cdae4
 +    public void removeBot(@NotNull String name) {
 +        ServerBot bot = ServerBot.getBot(name);
 +        if (bot != null) {
++            if (!TickThread.isTickThreadFor(bot)){
++                SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
++                    bot.die(bot.damageSources().fellOutOfWorld());
++                });
++                return;
++            }
 +            bot.die(bot.damageSources().fellOutOfWorld());
 +        }
 +    }
@@ -3092,6 +2962,12 @@ index 0000000000000000000000000000000000000000..df5796bfa333a287ccd486be9a9cdae4
 +    public void removeBot(@NotNull UUID uuid) {
 +        ServerBot bot = ServerBot.getBot(uuid);
 +        if (bot != null) {
++            if (!TickThread.isTickThreadFor(bot)){
++                SchedulerUtil.regionSchedulerAsExecutor(bot.getLocation()).execute(()->{
++                    bot.die(bot.damageSources().fellOutOfWorld());
++                });
++                return;
++            }
 +            bot.die(bot.damageSources().fellOutOfWorld());
 +        }
 +    }
@@ -3119,284 +2995,6 @@ index 0000000000000000000000000000000000000000..df5796bfa333a287ccd486be9a9cdae4
 +    @Override
 +    public boolean unregisterCustomBotAction(String name) {
 +        return Actions.unregister(name);
-+    }
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java b/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..7abf4eef22e40468929e724ebc07a97b0b2a05f3
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/entity/botaction/CustomBotAction.java
-@@ -0,0 +1,52 @@
-+package top.leavesmc.leaves.entity.botaction;
-+
-+import org.bukkit.entity.Player;
-+import org.jetbrains.annotations.NotNull;
-+import org.jetbrains.annotations.Nullable;
-+import top.leavesmc.leaves.entity.Bot;
-+
-+import java.util.List;
-+
-+/**
-+ * Represents a class which contains methods for a custom bot action
-+ */
-+public interface CustomBotAction {
-+
-+    /**
-+     * Executes the action, returning its success.
-+     *
-+     * @param bot bot of the action
-+     * @return true if once action finish, otherwise false
-+     */
-+    public boolean doTick(Bot bot);
-+
-+    /**
-+     *  Created a new action instance.
-+     *
-+     * @param player player who create this action
-+     * @param args passed action arguments
-+     * @return a new action instance with given args
-+     */
-+    public @Nullable CustomBotAction getNew(Player player, String[] args);
-+
-+    /**
-+     * Requests a list of possible completions for a action argument.
-+     *
-+     * @return A List of a List of possible completions for the argument.
-+     */
-+    public @NotNull List<List<String>> getTabComplete();
-+
-+    /**
-+     * Return a ticks to wait between {@link CustomBotAction#doTick(Bot)}
-+     *
-+     * @return the ticks to wait between runs
-+     */
-+    public int getTickDelay();
-+
-+    /**
-+     * Return a number of times {@link CustomBotAction#doTick(Bot)} can return true
-+     *
-+     * @return the number of times an action can be executed
-+     */
-+    public int getNumber();
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java b/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..e298722319ff0cfd52e531693ea3767e5f9a3d52
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/entity/botaction/LeavesBotAction.java
-@@ -0,0 +1,32 @@
-+package top.leavesmc.leaves.entity.botaction;
-+
-+/**
-+ * A Leaves bot action enum
-+ */
-+public enum LeavesBotAction {
-+    ATTACK("attack"),
-+    ATTACK_SELF("attack_self"),
-+    BREAK("break"),
-+    DROP("drop"),
-+    FISH("fish"),
-+    JUMP("jump"),
-+    LAY("lay"),
-+    LOOK("look"),
-+    ROTATE("rotate"),
-+    SNEAK("sneak"),
-+    STOP("stop"),
-+    SWIM("swim"),
-+    USE("use"),
-+    USE_ON("use_on"),
-+    USE_TO("use_to");
-+
-+    private final String name;
-+
-+    private LeavesBotAction(String name) {
-+        this.name = name;
-+    }
-+
-+    public String getName() {
-+        return name;
-+    }
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..7cf1eb4eb3d2fe9310f9272ec53208632b87b49b
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/event/bot/BotCreateEvent.java
-@@ -0,0 +1,106 @@
-+package top.leavesmc.leaves.event.bot;
-+
-+import org.bukkit.Location;
-+import org.bukkit.event.Cancellable;
-+import org.bukkit.event.Event;
-+import org.bukkit.event.HandlerList;
-+import org.jetbrains.annotations.NotNull;
-+import org.jetbrains.annotations.Nullable;
-+
-+/**
-+ * Call when a fakeplayer creates a server
-+ */
-+public class BotCreateEvent extends Event implements Cancellable {
-+    private static final HandlerList handlers = new HandlerList();
-+
-+    private final String bot;
-+    private final String skin;
-+    private String joinMessage;
-+    private Location createLocation;
-+    private boolean cancel = false;
-+
-+    public BotCreateEvent(@NotNull final String who, @NotNull final String skin, @NotNull final Location createLocation, @Nullable final String joinMessage) {
-+        this.bot = who;
-+        this.skin = skin;
-+        this.joinMessage = joinMessage;
-+        this.createLocation = createLocation;
-+    }
-+
-+    /**
-+     * Gets the fakeplayer name
-+     *
-+     * @return fakeplayer name
-+     */
-+    public String getBot() {
-+        return bot;
-+    }
-+
-+    /**
-+     * Gets the join message to send to all online players
-+     *
-+     * @return string join message. Can be null
-+     */
-+    @Nullable
-+    public String getJoinMessage() {
-+        return joinMessage;
-+    }
-+
-+    /**
-+     * Sets the join message to send to all online players
-+     *
-+     * @param joinMessage join message. If null, no message will be sent
-+     */
-+    public void setJoinMessage(@Nullable String joinMessage) {
-+        this.joinMessage = joinMessage;
-+    }
-+
-+    /**
-+     * Gets the location to create the fakeplayer
-+     *
-+     * @return Location to create the fakeplayer
-+     */
-+    @NotNull
-+    public Location getCreateLocation() {
-+        return createLocation;
-+    }
-+
-+    /**
-+     * Sets the location to create the fakeplayer
-+     *
-+     * @param createLocation location to create the fakeplayer
-+     */
-+    public void setCreateLocation(@NotNull Location createLocation) {
-+        this.createLocation = createLocation;
-+    }
-+
-+    /**
-+     * Gets the fakeplayer skin
-+     *
-+     * @return fakeplayer skin name
-+     */
-+    @Nullable
-+    public String getSkin() {
-+        return skin;
-+    }
-+
-+    @Override
-+    public boolean isCancelled() {
-+        return cancel;
-+    }
-+
-+    @Override
-+    public void setCancelled(boolean cancel) {
-+        this.cancel = cancel;
-+    }
-+
-+    @Override
-+    @NotNull
-+    public HandlerList getHandlers() {
-+        return handlers;
-+    }
-+
-+    @NotNull
-+    public static HandlerList getHandlerList() {
-+        return handlers;
-+    }
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..4a4fe07ce965d4a97e0d8105a91310dac7d1343c
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/event/bot/BotEvent.java
-@@ -0,0 +1,31 @@
-+package top.leavesmc.leaves.event.bot;
-+
-+import org.bukkit.event.Event;
-+import org.jetbrains.annotations.NotNull;
-+import top.leavesmc.leaves.entity.Bot;
-+
-+/**
-+ * Represents a fakeplayer related event
-+ */
-+public abstract class BotEvent extends Event {
-+    protected Bot bot;
-+
-+    public BotEvent(@NotNull final Bot who) {
-+        bot = who;
-+    }
-+
-+    public BotEvent(@NotNull final Bot who, boolean async) { // Paper - public
-+        super(async);
-+        bot = who;
-+    }
-+
-+    /**
-+     * Returns the fakeplayer involved in this event
-+     *
-+     * @return Fakeplayer who is involved in this event
-+     */
-+    @NotNull
-+    public final Bot getBot() {
-+        return bot;
-+    }
-+}
-diff --git a/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java b/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..10afa5c7fd4ee8a4e72d64f8ca9bf8731ec2ad61
---- /dev/null
-+++ b/src/main/java/top/leavesmc/leaves/event/bot/BotJoinEvent.java
-@@ -0,0 +1,27 @@
-+package top.leavesmc.leaves.event.bot;
-+
-+import org.bukkit.event.HandlerList;
-+import org.jetbrains.annotations.NotNull;
-+import top.leavesmc.leaves.entity.Bot;
-+
-+/**
-+ * Called when a fakeplayer joins a server
-+ */
-+public class BotJoinEvent extends BotEvent {
-+    private static final HandlerList handlers = new HandlerList();
-+
-+    public BotJoinEvent(@NotNull Bot who) {
-+        super(who);
-+    }
-+
-+    @Override
-+    @NotNull
-+    public HandlerList getHandlers() {
-+        return handlers;
-+    }
-+
-+    @NotNull
-+    public static HandlerList getHandlerList() {
-+        return handlers;
 +    }
 +}
 diff --git a/src/main/java/top/leavesmc/leaves/util/MathUtils.java b/src/main/java/top/leavesmc/leaves/util/MathUtils.java

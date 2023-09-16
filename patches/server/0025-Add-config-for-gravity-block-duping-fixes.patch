@@ -25,7 +25,7 @@ index 6104db764d03589f973ec0a303903762c0caf44c..37614dfb908a6c3f4a1d5d715e375c03
          entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
          enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
 diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
-index 34b3541603b8cca16c7d62f3981d7ce3e8be0dbe..bf763869640298fc2e2fcd9b8d832d097f747683 100644
+index 34b3541603b8cca16c7d62f3981d7ce3e8be0dbe..2af3535a35b6cc3c30009dbebe427acb28c5f87d 100644
 --- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
 @@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
@@ -42,7 +42,7 @@ index 34b3541603b8cca16c7d62f3981d7ce3e8be0dbe..bf763869640298fc2e2fcd9b8d832d09
      public void tick() {
          // Paper start - fix sand duping
 -        if (this.isRemoved()) {
-+        if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
++        if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
              return;
          }
          // Paper end - fix sand duping
@@ -51,7 +51,7 @@ index 34b3541603b8cca16c7d62f3981d7ce3e8be0dbe..bf763869640298fc2e2fcd9b8d832d09
  
              // Paper start - fix sand duping
 -            if (this.isRemoved()) {
-+            if (this.isRemoved() && MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
++            if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
                  return;
              }
              // Paper end - fix sand duping
