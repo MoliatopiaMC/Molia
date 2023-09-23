@@ -1,0 +1,78 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Sat, 23 Sep 2023 19:24:46 +0800
+Subject: [PATCH] Pufferfish Reduce projectile chunk loading
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 051c807211c369b31442917d35cbe5c09681d95a..405bc9c2ea13e8b70c70f52c1fc81336b4dd432e 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -27,6 +27,8 @@ public class MoliaConfig {
+     //Optimizations
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     public static boolean enableSuffocationOptimization = true;
++    public static int maxProjectileLoadsPerTick = 10;
++    public static int maxProjectileLoadsPerProjectile = 10;
+ 
+     //Gameplay
+     public static boolean tpsBarEnabled = false;
+@@ -72,6 +74,8 @@ public class MoliaConfig {
+ 
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
++        maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
++        maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
+ 
+         fakeplayerSupport = getBoolean("gameplay.leaves.fakeplayer.enabled",fakeplayerSupport);
+         fakeplayerLimit = getInt("gameplay.leaves.fakeplayer.fake_player_limit",fakeplayerLimit);
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+index 5835a1ba3e2927c6b5d143506b440ac5a43aaaa4..9eb33c16c66adb8834dbf8eed78e1aa683363f3c 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+@@ -4,6 +4,8 @@ import com.google.common.base.MoreObjects;
+ import java.util.Iterator;
+ import java.util.UUID;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.network.protocol.Packet;
+@@ -44,6 +46,36 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+         super(type, world);
+     }
+ 
++    // Pufferfish start
++    private static int loadedThisTick = 0;
++    private static int loadedTick;
++
++    private int loadedLifetime = 0;
++    @Override
++    public void setPos(double x, double y, double z) {
++        int currentTick = this.tickCount;
++        if (loadedTick != currentTick) {
++            loadedTick = currentTick;
++            loadedThisTick = 0;
++        }
++        int previousX = Mth.floor(this.getX()) >> 4, previousZ = Mth.floor(this.getZ()) >> 4;
++        int newX = Mth.floor(x) >> 4, newZ = Mth.floor(z) >> 4;
++        if (previousX != newX || previousZ != newZ) {
++            boolean isLoaded = ((net.minecraft.server.level.ServerChunkCache) this.level().getChunkSource()).getChunkAtIfLoadedMainThread(newX, newZ) != null;
++            if (!isLoaded) {
++                if (Projectile.loadedThisTick > MoliaConfig.maxProjectileLoadsPerTick) {
++                    if (++this.loadedLifetime > MoliaConfig.maxProjectileLoadsPerProjectile) {
++                        this.discard();
++                    }
++                    return;
++                }
++                Projectile.loadedThisTick++;
++            }
++        }
++        super.setPos(x, y, z);
++    }
++    // Pufferfish end
++
+     public void setOwner(@Nullable Entity entity) {
+         if (entity != null) {
+             this.ownerUUID = entity.getUUID();
