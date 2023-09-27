@@ -1,0 +1,99 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Wed, 27 Sep 2023 22:25:55 +0800
+Subject: [PATCH] Kaiiju Unsafe teleportation
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 405bc9c2ea13e8b70c70f52c1fc81336b4dd432e..b989377fb0f0f57ea9e114ed44818150c71822f2 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -23,6 +23,7 @@ public class MoliaConfig {
+     public static boolean updateTripWireIfRemoving = false;
+     public static boolean breakRedstoneOnTripDoorEarly = true;
+     public static boolean allowVoidTrading = false;
++    public static boolean safeTeleportation = true;
+ 
+     //Optimizations
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -68,6 +69,7 @@ public class MoliaConfig {
+         fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
+         fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
++        safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) || !allowGravityBlockDupe;
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         breakRedstoneOnTripDoorEarly = getBoolean("fixes.break_redstone_early_on_tripdoor",breakRedstoneOnTripDoorEarly);
+         allowVoidTrading = getBoolean("fixes.allow_void_trading",allowVoidTrading);
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 391369b487a092677b0f1e072738c904459491b4..1fbf7a09556b1dd60c63c21c7005415a6d2310c0 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -60,7 +60,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
+ import net.minecraft.network.syncher.SynchedEntityData;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.resources.ResourceLocation;
+-import io.papermc.paper.util.MCUtil;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.server.level.ServerPlayer;
+@@ -3997,6 +3996,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+ 
+     protected boolean tryEndPortal() {
+         io.papermc.paper.util.TickThread.ensureTickThread(this, "Cannot portal entity async");
++        if (!MoliaConfig.safeTeleportation && !(this instanceof net.minecraft.world.entity.player.Player)) return false; // Kaiiju - Unsafe teleportation
+         BlockPos pos = this.portalBlock;
+         ServerLevel world = this.portalWorld;
+         this.portalBlock = null;
+diff --git a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+index 41d7cff39fc37955877668337689b4b26cd8c7cf..e09e43784a49da54c88032e094034f46602aac60 100644
+--- a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+@@ -1,10 +1,10 @@
+ package net.minecraft.world.level.block;
+ 
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.particles.ParticleTypes;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.server.level.ServerLevel;
+-import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.RandomSource;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.item.ItemStack;
+@@ -20,8 +20,6 @@ import net.minecraft.world.phys.shapes.BooleanOp;
+ import net.minecraft.world.phys.shapes.CollisionContext;
+ import net.minecraft.world.phys.shapes.Shapes;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+-import org.bukkit.event.entity.EntityPortalEnterEvent;
+-import org.bukkit.event.player.PlayerTeleportEvent;
+ // CraftBukkit end
+ 
+ public class EndPortalBlock extends BaseEntityBlock {
+@@ -44,7 +42,9 @@ public class EndPortalBlock extends BaseEntityBlock {
+ 
+     @Override
+     public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+-        if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, pos)).callEvent()) { return; } // Paper
++        if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, pos)).callEvent()) {
++            return;
++        } // Paper
+         if (world instanceof ServerLevel && entity.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move((double) (-pos.getX()), (double) (-pos.getY()), (double) (-pos.getZ()))), state.getShape(world, pos), BooleanOp.AND)) {
+             ResourceKey<Level> resourcekey = world.getTypeKey() == LevelStem.END ? Level.OVERWORLD : Level.END; // CraftBukkit - SPIGOT-6152: send back to main overworld in custom ends
+             ServerLevel worldserver = ((ServerLevel) world).getServer().getLevel(resourcekey);
+@@ -53,8 +53,15 @@ public class EndPortalBlock extends BaseEntityBlock {
+                 // return; // CraftBukkit - always fire event in case plugins wish to change it
+             }
+ 
++            // Kaiiju start - Unsafe teleportation
++            if (!MoliaConfig.safeTeleportation && !(entity instanceof net.minecraft.world.entity.player.Player)) {
++                entity.endPortalLogicAsync();
++                return;
++            }
++            // Kaiiju end
++
+             // Paper start - move all of this logic into portal tick
+-            entity.portalWorld = ((ServerLevel)world);
++            entity.portalWorld = ((ServerLevel) world);
+             entity.portalBlock = pos.immutable();
+             // Paper end - move all of this logic into portal tick
+         }
