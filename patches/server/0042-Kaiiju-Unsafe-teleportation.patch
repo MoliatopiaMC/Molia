@@ -5,7 +5,7 @@ Subject: [PATCH] Kaiiju Unsafe teleportation
 
 
 diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
-index 405bc9c2ea13e8b70c70f52c1fc81336b4dd432e..b989377fb0f0f57ea9e114ed44818150c71822f2 100644
+index 405bc9c2ea13e8b70c70f52c1fc81336b4dd432e..e95a14cec8a6c276adbf787c4af850db5dd45634 100644
 --- a/src/main/java/me/earthme/molia/MoliaConfig.java
 +++ b/src/main/java/me/earthme/molia/MoliaConfig.java
 @@ -23,6 +23,7 @@ public class MoliaConfig {
@@ -20,7 +20,7 @@ index 405bc9c2ea13e8b70c70f52c1fc81336b4dd432e..b989377fb0f0f57ea9e114ed44818150
          fixCanNotMoveEntityOffMain = getBoolean("fixes.fix_can_not_move_entity_off_main",fixCanNotMoveEntityOffMain);
          fixDoublingChunkSend = getBoolean("fixes.fix_doubling_chunk_send",fixDoublingChunkSend);
          allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
-+        safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) || !allowGravityBlockDupe;
++        safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
          updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
          breakRedstoneOnTripDoorEarly = getBoolean("fixes.break_redstone_early_on_tripdoor",breakRedstoneOnTripDoorEarly);
          allowVoidTrading = getBoolean("fixes.allow_void_trading",allowVoidTrading);

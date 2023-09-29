@@ -1,0 +1,81 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 29 Sep 2023 08:14:01 +0800
+Subject: [PATCH] Pufferfish Entity TTL
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 4f73701bb810f456146714c8ff67ff9ec423f79b..cde3d3b0cf541cace5c3afeb1467c5cb6ab61824 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -14,6 +14,9 @@ import java.io.File;
+ import java.io.IOException;
+ import java.util.Collections;
+ import java.util.List;
++import java.util.Locale;
++import java.util.Map;
++
+ import me.earthme.molia.commands.TpsBarCommand;
+ import me.earthme.molia.functions.GlobalServerTpsBar;
+ 
+@@ -37,6 +40,7 @@ public class MoliaConfig {
+     public static int startDistanceSquared = 144;
+     public static int maximumActivationPrio = 20;
+     public static int activationDistanceMod = 8;
++    public static Map<String, Integer> entityTTLs;
+ 
+     //Gameplay
+     public static boolean tpsBarEnabled = false;
+@@ -74,6 +78,15 @@ public class MoliaConfig {
+                 }, () -> MinecraftServer.LOGGER.warn("Unknown entity \"" + name + "\"")));
+     }
+ 
++    public static void initEntityTTL(){
++        getInt("optimizations.entity_timeouts.SNOWBALL", -1);
++        getInt("optimizations.entity_timeouts.LLAMA_SPIT", -1);
++        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
++            String type = EntityType.getKey(entityType).getPath().toUpperCase(Locale.ROOT);
++            entityType.ttl = getInt("optimizations.entity_timeouts." + type, -1);
++        }
++    }
++
+     public static void initTpsBar(){
+         if (!tpsBarEnabled){
+             return;
+@@ -101,6 +114,7 @@ public class MoliaConfig {
+         maximumActivationPrio = getInt("optimizations.dab.max_tick_freq",maximumActivationPrio);
+         activationDistanceMod = getInt("optimizations.dab.activation_dist_mod",activationDistanceMod);
+         initDAB();
++        initEntityTTL();
+ 
+         fakeplayerSupport = getBoolean("gameplay.leaves.fakeplayer.enabled",fakeplayerSupport);
+         fakeplayerLimit = getInt("gameplay.leaves.fakeplayer.fake_player_limit",fakeplayerLimit);
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index f34a79f573bd473f6a23a953d9022ff0693ab80e..d4f65c32f747a15dbad3a430c87b1377f3e08efa 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -811,6 +811,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     }
+ 
+     public void tick() {
++        // Pufferfish start - entity TTL
++        if (type != EntityType.PLAYER && type.ttl >= 0 && this.tickCount >= type.ttl) {
++            discard();
++            return;
++        }
++        // Pufferfish end - entity TTL
+         this.baseTick();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/EntityType.java b/src/main/java/net/minecraft/world/entity/EntityType.java
+index 1679f0a3d095a7b758b468c77b6d3a4c078b7962..aa5cec6d56d7a8e80861aa4c9b4a74ca3e64be8c 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityType.java
++++ b/src/main/java/net/minecraft/world/entity/EntityType.java
+@@ -301,6 +301,7 @@ public class EntityType<T extends Entity> implements FeatureElement, EntityTypeT
+     private final int clientTrackingRange;
+     private final int updateInterval;
+     public boolean dabEnabled = false; // Pufferfish
++    public int ttl = -1; // Pufferfish
+     @Nullable
+     private String descriptionId;
+     @Nullable
