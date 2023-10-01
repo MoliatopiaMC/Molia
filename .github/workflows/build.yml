@@ -45,8 +45,9 @@ jobs:
     - name: Release Artifacts
       uses: svenstaro/upload-release-action@v2
       with:
-       title: "Molia MC1.20.1 - ${{ env.Compile_Date }}"
-       automatic_release_tag: "1.20.1-${{ env.Compile_Date }}"
+       release_name: "Molia MC1.20.1 - ${{ env.Compile_Date }}"
+       tag: "1.20.1-${{ env.Compile_Date }}"
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-       files: "build/libs/molia-1.20.1-paperclip.jar"
+       file: "build/libs/molia-1.20.1-paperclip.jar"
+       file_glob: true
        prerelease: false
