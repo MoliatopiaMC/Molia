@@ -46,7 +46,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
        release_name: "Molia MC1.20.1 - ${{ github.event.repository.updated_at}}"
-       tag: "${{ github.sha }}"
+       tag: "1.20.1-${{ github.run.id }}"
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
        file: "build/libs/molia-1.20.1-paperclip.jar"
        file_glob: true
