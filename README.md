@@ -1,4 +1,6 @@
 ## Molia
+[![MIT License](https://img.shields.io/github/license/Era4FunMC/Molia?style=for-the-badge)](LICENSE)
+[![Issues](https://img.shields.io/github/issues/Era4FunMC/Molia?style=for-the-badge)](https://github.com/MikuMC/MikuServer/issues)
 
 <h5>Molia is a drop-in replacement for <a href="https://github.com/PaperMC/Folia">Folia</a> servers designed for customize, and performance built on top of <a href="https://github.com/PaperMC/Paper">Folia</a>.</h5>
 </div>
