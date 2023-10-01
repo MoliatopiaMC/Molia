@@ -27,19 +27,22 @@ index 051c807211c369b31442917d35cbe5c09681d95a..405bc9c2ea13e8b70c70f52c1fc81336
          fakeplayerSupport = getBoolean("gameplay.leaves.fakeplayer.enabled",fakeplayerSupport);
          fakeplayerLimit = getInt("gameplay.leaves.fakeplayer.fake_player_limit",fakeplayerLimit);
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
-index 5835a1ba3e2927c6b5d143506b440ac5a43aaaa4..9eb33c16c66adb8834dbf8eed78e1aa683363f3c 100644
+index 5835a1ba3e2927c6b5d143506b440ac5a43aaaa4..2aff2d7d3fbf53199d2f37acd814038ee92f47e3 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
-@@ -4,6 +4,8 @@ import com.google.common.base.MoreObjects;
+@@ -4,6 +4,11 @@ import com.google.common.base.MoreObjects;
  import java.util.Iterator;
  import java.util.UUID;
  import javax.annotation.Nullable;
 +
++import io.papermc.paper.threadedregions.ThreadedRegionizer;
++import io.papermc.paper.threadedregions.TickRegionScheduler;
++import io.papermc.paper.threadedregions.TickRegions;
 +import me.earthme.molia.MoliaConfig;
  import net.minecraft.core.BlockPos;
  import net.minecraft.nbt.CompoundTag;
  import net.minecraft.network.protocol.Packet;
-@@ -44,6 +46,36 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+@@ -44,6 +49,36 @@ public abstract class Projectile extends Entity implements TraceableEntity {
          super(type, world);
      }
  
@@ -50,7 +53,7 @@ index 5835a1ba3e2927c6b5d143506b440ac5a43aaaa4..9eb33c16c66adb8834dbf8eed78e1aa6
 +    private int loadedLifetime = 0;
 +    @Override
 +    public void setPos(double x, double y, double z) {
-+        int currentTick = this.tickCount;
++        int currentTick = (int) TickRegionScheduler.getCurrentRegion().getData().getCurrentTick();
 +        if (loadedTick != currentTick) {
 +            loadedTick = currentTick;
 +            loadedThisTick = 0;
