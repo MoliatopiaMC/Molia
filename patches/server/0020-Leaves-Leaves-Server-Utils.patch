@@ -31,7 +31,7 @@ index 46954db7ecd35ac4018fdf476df7c8020d7ce6c8..044c51ebb058fc36074fd178929e3279
      public PlayerAreaMap() {
          super();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 5b7c8d8ad82cfff8fad52e5fd7ee222b54615029..4bad93036bf7d18785bed9dab3a615fa9fd8c980 100644
+index 66d257c3ff9501c41c6bcdf6c2070230198036bd..8a2fd5aba5200dd7e78138f4860f8861bed40105 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -500,6 +500,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -43,7 +43,7 @@ index 5b7c8d8ad82cfff8fad52e5fd7ee222b54615029..4bad93036bf7d18785bed9dab3a615fa
      public net.minecraft.server.level.FullChunkStatus chunkStatus;
  
      public int sectionX = Integer.MIN_VALUE;
-@@ -2479,6 +2481,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2471,6 +2473,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  nbt.putBoolean("Paper.FreezeLock", true);
              }
              // Paper end
@@ -51,7 +51,7 @@ index 5b7c8d8ad82cfff8fad52e5fd7ee222b54615029..4bad93036bf7d18785bed9dab3a615fa
              return nbt;
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Saving entity NBT");
-@@ -2647,6 +2650,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2639,6 +2642,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  freezeLocked = nbt.getBoolean("Paper.FreezeLock");
              }
              // Paper end
@@ -63,7 +63,7 @@ index 5b7c8d8ad82cfff8fad52e5fd7ee222b54615029..4bad93036bf7d18785bed9dab3a615fa
  
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Loading entity NBT");
-@@ -2661,6 +2669,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2653,6 +2661,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return true;
      }
  

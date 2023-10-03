@@ -324,10 +324,10 @@ index 4f7a9a4ca030c8349a684080b44547f66ed0d2d7..ec3b14457146d1fa18a475e94114d029
 +    // Leaves end - fakeplayer support
  }
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 4bad93036bf7d18785bed9dab3a615fa9fd8c980..9bc9bae8faea19bb065850a91ea67efef6901da2 100644
+index 8a2fd5aba5200dd7e78138f4860f8861bed40105..bbc4adf6e71b7ae2f8a5f46dff8f2183ca538617 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -1486,7 +1486,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1478,7 +1478,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return offsetFactor;
      }
  

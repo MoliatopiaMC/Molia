@@ -25,7 +25,7 @@ index 405bc9c2ea13e8b70c70f52c1fc81336b4dd432e..e95a14cec8a6c276adbf787c4af850db
          breakRedstoneOnTripDoorEarly = getBoolean("fixes.break_redstone_early_on_tripdoor",breakRedstoneOnTripDoorEarly);
          allowVoidTrading = getBoolean("fixes.allow_void_trading",allowVoidTrading);
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 391369b487a092677b0f1e072738c904459491b4..1fbf7a09556b1dd60c63c21c7005415a6d2310c0 100644
+index b6b4e9c3ece0e8357f470d3d7ab4ee637fd1635b..1de6570188d28e53cb81188f05274416bcb8dfad 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -60,7 +60,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
@@ -36,7 +36,7 @@ index 391369b487a092677b0f1e072738c904459491b4..1fbf7a09556b1dd60c63c21c7005415a
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.server.level.ServerPlayer;
-@@ -3997,6 +3996,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -3989,6 +3988,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
  
      protected boolean tryEndPortal() {
          io.papermc.paper.util.TickThread.ensureTickThread(this, "Cannot portal entity async");

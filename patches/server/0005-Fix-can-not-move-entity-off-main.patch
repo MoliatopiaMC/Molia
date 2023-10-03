@@ -24,7 +24,7 @@ index d334b3aa4f311f57f2c41ced6c2265c817b78a76..92ad4c7105d5a5d8040d52c85d2274ab
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..8ed500a51d88e3267a1a8ea6a318dc9c92459bf3 100644
+index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..a428bea07b5a019b8c0d08cd6669407258d103fb 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
@@ -44,34 +44,24 @@ index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..8ed500a51d88e3267a1a8ea6a318dc9c
  import net.minecraft.BlockUtil;
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
-@@ -1122,7 +1125,29 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
-                     }
-                 }
+@@ -767,6 +770,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     }
  
--                this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
-+                //Molia start - Fix can not move entity off main
-+                var finalX = this.getX() + vec3d1.x;
-+                var finalY = this.getY() + vec3d1.y;
-+                var finalZ = this.getZ() + vec3d1.z;
-+
-+                if (MoliaConfig.fixCanNotMoveEntityOffMain){
-+                    if (TickThread.isTickThreadFor((ServerLevel) this.level,(int)finalX >> 4,(int)finalZ >> 4)){
-+                        this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
-+                    }else {
-+                        this.teleportAsync(
-+                                ((ServerLevel) this.level),
-+                                this.position().add(vec3d1),
-+                                this.getYRot(),
-+                                this.getXRot(),
-+                                null,
-+                                PlayerTeleportEvent.TeleportCause.UNKNOWN,
-+                                Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS, null
-+                        );
-+                    }
-+                }else{
-+                    this.setPos(this.getX() + vec3d1.x, this.getY() + vec3d1.y, this.getZ() + vec3d1.z);
-+                }
-+                //Molia end
-             }
- 
-             this.level().getProfiler().pop();
+     public void setPos(double x, double y, double z) {
++        //Molia start - Teleport if the pos is in another region
++        if (MoliaConfig.fixCanNotMoveEntityOffMain && !TickThread.isTickThreadFor((ServerLevel) this.level,(int)x >> 4,(int)z >> 4)){
++            this.teleportAsync(
++                    ((ServerLevel) this.level),
++                    new Vec3(x,y,z),
++                    this.getYRot(),
++                    this.getXRot(),
++                    null,
++                    PlayerTeleportEvent.TeleportCause.UNKNOWN,
++                    Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS, null
++            );
++            return;
++        }
++        //Molia end
+         this.setPosRaw(x, y, z, true); // Paper - force bounding box update
+         // this.setBoundingBox(this.makeBoundingBox()); // Paper - move into setPositionRaw
+     }
