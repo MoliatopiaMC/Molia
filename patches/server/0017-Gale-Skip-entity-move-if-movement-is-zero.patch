@@ -5,7 +5,7 @@ Subject: [PATCH] Gale Skip entity move if movement is zero
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index e7b47944fc2ab66f27585a6f79c63f903bac8e0a..66d257c3ff9501c41c6bcdf6c2070230198036bd 100644
+index f9604c04ada8fe26e6e102c2186f99d79ef37528..0ede70af9324ac28b92197dcb4bb877745dde04b 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -317,6 +317,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
@@ -16,7 +16,7 @@ index e7b47944fc2ab66f27585a6f79c63f903bac8e0a..66d257c3ff9501c41c6bcdf6c2070230
      public boolean onGround;
      public boolean horizontalCollision;
      public boolean verticalCollision;
-@@ -1094,6 +1095,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1096,6 +1097,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      // Paper end - detailed watchdog information
  
      public void move(MoverType movementType, Vec3 movement) {
@@ -28,7 +28,7 @@ index e7b47944fc2ab66f27585a6f79c63f903bac8e0a..66d257c3ff9501c41c6bcdf6c2070230
          // Paper start - detailed watchdog information
          io.papermc.paper.util.TickThread.ensureTickThread("Cannot move an entity off-main");
          synchronized (this.posLock) {
-@@ -4782,6 +4788,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4784,6 +4790,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      }
  
      public final void setBoundingBox(AABB boundingBox) {

@@ -51,10 +51,10 @@ index 4f73701bb810f456146714c8ff67ff9ec423f79b..cde3d3b0cf541cace5c3afeb1467c5cb
          fakeplayerSupport = getBoolean("gameplay.leaves.fakeplayer.enabled",fakeplayerSupport);
          fakeplayerLimit = getInt("gameplay.leaves.fakeplayer.fake_player_limit",fakeplayerLimit);
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 75d3ac95eaca5f29e020675af8d5f61a925202b4..03ced7057d0a39c0ddd2d623aefcd58e315b5c90 100644
+index 86d2aa994e08ba4245443962960908172bdc6ad7..b5f25337ee93c90d58ea2a63e6a4562dd7340f19 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -825,6 +825,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -827,6 +827,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      }
  
      public void tick() {

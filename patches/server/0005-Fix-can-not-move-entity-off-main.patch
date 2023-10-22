@@ -24,7 +24,7 @@ index d334b3aa4f311f57f2c41ced6c2265c817b78a76..92ad4c7105d5a5d8040d52c85d2274ab
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..a428bea07b5a019b8c0d08cd6669407258d103fb 100644
+index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..6110fef8afe827bb8b724853973f41e8a32b28a1 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
@@ -44,22 +44,24 @@ index fa35d2c1c8de225acd68e08f15976c92f7ab82aa..a428bea07b5a019b8c0d08cd66694072
  import net.minecraft.BlockUtil;
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
-@@ -767,6 +770,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -767,6 +770,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      }
  
      public void setPos(double x, double y, double z) {
 +        //Molia start - Teleport if the pos is in another region
-+        if (MoliaConfig.fixCanNotMoveEntityOffMain && !TickThread.isTickThreadFor((ServerLevel) this.level,(int)x >> 4,(int)z >> 4)){
-+            this.teleportAsync(
-+                    ((ServerLevel) this.level),
-+                    new Vec3(x,y,z),
-+                    this.getYRot(),
-+                    this.getXRot(),
-+                    null,
-+                    PlayerTeleportEvent.TeleportCause.UNKNOWN,
-+                    Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS, null
-+            );
-+            return;
++        if (TickThread.isTickThread()){ //Skip for chunk system worker
++            if (MoliaConfig.fixCanNotMoveEntityOffMain && !TickThread.isTickThreadFor((ServerLevel) this.level,(int)x >> 4,(int)z >> 4)){
++                this.teleportAsync(
++                        ((ServerLevel) this.level),
++                        new Vec3(x,y,z),
++                        this.getYRot(),
++                        this.getXRot(),
++                        null,
++                        PlayerTeleportEvent.TeleportCause.UNKNOWN,
++                        Entity.TELEPORT_FLAG_LOAD_CHUNK | Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS, null
++                );
++                return;
++            }
 +        }
 +        //Molia end
          this.setPosRaw(x, y, z, true); // Paper - force bounding box update

@@ -5,10 +5,10 @@ Subject: [PATCH] Kaiiju Vanilla end portal teleportation
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 39fac1d0da5e0e43e9257ce1526229f9cf4ffe83..b6b4e9c3ece0e8357f470d3d7ab4ee637fd1635b 100644
+index 2aa146e399c024a7fb347b16645008ed0014151c..f04768605fb36e9a726bc8efec071d9f36fda659 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -4074,12 +4074,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4076,12 +4076,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                          targetPos, 16, // load 16 blocks to be safe from block physics
                          ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor.Priority.HIGH,
                          (chunks) -> {
@@ -28,7 +28,7 @@ index 39fac1d0da5e0e43e9257ce1526229f9cf4ffe83..b6b4e9c3ece0e8357f470d3d7ab4ee63
                              );
                          }
                      );
-@@ -4266,6 +4271,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4268,6 +4273,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          if (!this.canPortalAsync(takePassengers)) {
              return false;
          }
@@ -39,7 +39,7 @@ index 39fac1d0da5e0e43e9257ce1526229f9cf4ffe83..b6b4e9c3ece0e8357f470d3d7ab4ee63
  
          Vec3 initialPosition = this.position();
          ChunkPos initialPositionChunk = new ChunkPos(
-@@ -4324,7 +4333,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4326,7 +4335,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
              // place
              passengerTree.root.placeInAsync(
                  originWorld, destination, Entity.TELEPORT_FLAG_LOAD_CHUNK | (takePassengers ? Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS : 0L),
