@@ -32,7 +32,6 @@ Building a Paperclip JAR for distribution:
 All patches are licensed under the MIT license, unless otherwise noted in the patch headers.
 
 See [PaperMC/Paper](https://github.com/PaperMC/Paper), and [PaperMC/Paperweight](https://github.com/PaperMC/paperweight) for the license of material used by this project.
-[0002-Leaves-Add-fakeplayer-api.patch](patches%2Fapi%2F0002-Leaves-Add-fakeplayer-api.patch)
 Yes, this also includes all API provided by Paper, Spigot, and Bukkit.
 
 
