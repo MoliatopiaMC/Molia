@@ -1,0 +1,81 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 20:07:27 +0800
+Subject: [PATCH] Pufferfish Reduce projectile chunk loading
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index ccf5643a3842e0ac310ddd12044c7c07b7fc11e0..36dd3b34e118c8c2c0205d3fa8971141ea72d2ff 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -13,6 +13,8 @@ public class MoliaConfig {
+     public static boolean updateTripWireIfRemoving = false;
+     public static boolean breakRedstoneOnTripDoorEarly = true;
+     public static boolean allowVoidTrading = false;
++    public static int maxProjectileLoadsPerTick = 10;
++    public static int maxProjectileLoadsPerProjectile = 10;
+ 
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -28,6 +30,8 @@ public class MoliaConfig {
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+         safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
++        maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
++        maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
+ 
+         entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
+         enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+index 0c8f90a904c01105ba5fa6a8037150697bc2621e..4096f0ccb6fb979fd655d3e0f12c101134b10367 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
+@@ -4,6 +4,11 @@ import com.google.common.base.MoreObjects;
+ import java.util.Iterator;
+ import java.util.UUID;
+ import javax.annotation.Nullable;
++
++import io.papermc.paper.threadedregions.ThreadedRegionizer;
++import io.papermc.paper.threadedregions.TickRegionScheduler;
++import io.papermc.paper.threadedregions.TickRegions;
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.network.protocol.Packet;
+@@ -44,6 +49,36 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+         super(type, world);
+     }
+ 
++    // Pufferfish start
++    private static int loadedThisTick = 0;
++    private static int loadedTick;
++
++    private int loadedLifetime = 0;
++    @Override
++    public void setPos(double x, double y, double z) {
++        int currentTick = (int) TickRegionScheduler.getCurrentRegion().getData().getCurrentTick();
++        if (loadedTick != currentTick) {
++            loadedTick = currentTick;
++            loadedThisTick = 0;
++        }
++        int previousX = Mth.floor(this.getX()) >> 4, previousZ = Mth.floor(this.getZ()) >> 4;
++        int newX = Mth.floor(x) >> 4, newZ = Mth.floor(z) >> 4;
++        if (previousX != newX || previousZ != newZ) {
++            boolean isLoaded = ((net.minecraft.server.level.ServerChunkCache) this.level().getChunkSource()).getChunkAtIfLoadedMainThread(newX, newZ) != null;
++            if (!isLoaded) {
++                if (Projectile.loadedThisTick > MoliaConfig.maxProjectileLoadsPerTick) {
++                    if (++this.loadedLifetime > MoliaConfig.maxProjectileLoadsPerProjectile) {
++                        this.discard();
++                    }
++                    return;
++                }
++                Projectile.loadedThisTick++;
++            }
++        }
++        super.setPos(x, y, z);
++    }
++    // Pufferfish end
++
+     public void setOwner(@Nullable Entity entity) {
+         if (entity != null) {
+             this.ownerUUID = entity.getUUID();

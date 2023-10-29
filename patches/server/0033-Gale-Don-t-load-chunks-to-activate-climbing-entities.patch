@@ -1,0 +1,98 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 22:09:29 +0800
+Subject: [PATCH] Gale Don't load chunks to activate climbing entities
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index ba4ff4a0f3e24e98fce48de0a88c1b7449ec0310..ea2d8ae5e95e3eb9fa6eb127b47c0257f791ef2c 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -27,6 +27,7 @@ public class MoliaConfig {
+     public static int activationDistanceMod = 8;
+     public static Map<String, Integer> entityTTLs;
+     public static boolean loadChunkForSpawningPhantoms = false;
++    public static boolean loadChunksForActivatingClimbableEntities = false;
+ 
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -69,6 +70,7 @@ public class MoliaConfig {
+         maximumActivationPrio = getInt("optimizations.dab.max_tick_freq",maximumActivationPrio);
+         activationDistanceMod = getInt("optimizations.dab.activation_dist_mod",activationDistanceMod);
+         loadChunkForSpawningPhantoms = getBoolean("optimizations.load_chunk_for_spawning_for_phantoms",loadChunkForSpawningPhantoms);
++        loadChunksForActivatingClimbableEntities = getBoolean("optimizations.load_chunk_for_activating_climbable_entities",loadChunksForActivatingClimbableEntities);
+ 
+         initDAB();
+         initEntityTTL();
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 0be4cdc780f5272e4bfd54bb25c893a76b650080..eb73b2016d230a41e61e9faeb6c897b90371256f 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -5318,6 +5318,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+         return this.feetBlockState;
+     }
+ 
++    // Gale start - don't load chunks to activate climbing entities
++    public @Nullable BlockState getFeetBlockStateIfLoaded() {
++        if (this.feetBlockState == null) {
++            this.feetBlockState = this.level.getBlockStateIfLoaded(this.blockPosition());
++        }
++
++        return this.feetBlockState;
++    }
++    // Gale end - don't load chunks to activate climbing entities
++
+     public ChunkPos chunkPosition() {
+         return this.chunkPosition;
+     }
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index da951f10af38eac4aca2facc35949ffdad490f01..b16f259bd5414056939ad03afca13bc160ed8ffc 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -2027,19 +2027,43 @@ public abstract class LivingEntity extends Entity implements Attackable {
+ 
+     public boolean onClimableCached() {
+         if (!this.blockPosition().equals(this.lastClimbingPosition)) {
+-            this.cachedOnClimable = this.onClimbable();
+-            this.lastClimbingPosition = this.blockPosition();
++            // Gale start - don't load chunks to activate climbing entities
++            Boolean onClimbableIfLoaded = this.onClimbable(MoliaConfig.loadChunksForActivatingClimbableEntities);
++            if (onClimbableIfLoaded != null) {
++                this.cachedOnClimable = onClimbableIfLoaded;
++                this.lastClimbingPosition = this.blockPosition();
++            } else {
++                this.cachedOnClimable = false;
++                this.lastClimbingPosition = null;
++            }
++            // Gale end - don't load chunks to activate climbing e
+         }
+         return this.cachedOnClimable;
+     }
+     // Pufferfish end
+ 
+     public boolean onClimbable() {
++        // Gale start - don't load chunks to activate climbing entities
++        return onClimbable(true);
++    }
++
++    public Boolean onClimbable(boolean loadChunk) {
++        // Gale end - don't load chunks to activate climbing entities
+         if (this.isSpectator()) {
+             return false;
+         } else {
+             BlockPos blockposition = this.blockPosition();
+-            BlockState iblockdata = this.getFeetBlockState();
++            // Gale start - don't load chunks to activate climbing entities
++            BlockState iblockdata;
++            if (loadChunk) {
++                iblockdata = this.getFeetBlockState();
++            } else {
++                iblockdata = this.getFeetBlockStateIfLoaded();
++                if (iblockdata == null) {
++                    return null;
++                }
++            }
++            // Gale end - don't load chunks to activate climbing entities
+ 
+             if (iblockdata.is(BlockTags.CLIMBABLE)) {
+                 this.lastClimbablePos = Optional.of(blockposition);

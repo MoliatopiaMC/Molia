@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 22:04:51 +0800
+Subject: [PATCH] Gale Don't load chunks to spawn phantoms
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 9acd8eba4441326ba96b68842da8ee4f7c27611c..ba4ff4a0f3e24e98fce48de0a88c1b7449ec0310 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -26,6 +26,7 @@ public class MoliaConfig {
+     public static int maximumActivationPrio = 20;
+     public static int activationDistanceMod = 8;
+     public static Map<String, Integer> entityTTLs;
++    public static boolean loadChunkForSpawningPhantoms = false;
+ 
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -60,12 +61,14 @@ public class MoliaConfig {
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+         safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
++
+         maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
+         maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
+         dearEnabled = getBoolean("optimizations.dab.enabled",dearEnabled);
+         startDistanceSquared = getInt("optimizations.dab.start_distance",(int)Math.sqrt(startDistanceSquared)) ^ 2;
+         maximumActivationPrio = getInt("optimizations.dab.max_tick_freq",maximumActivationPrio);
+         activationDistanceMod = getInt("optimizations.dab.activation_dist_mod",activationDistanceMod);
++        loadChunkForSpawningPhantoms = getBoolean("optimizations.load_chunk_for_spawning_for_phantoms",loadChunkForSpawningPhantoms);
+ 
+         initDAB();
+         initEntityTTL();
+diff --git a/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java b/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
+index a127b6cbaab211d324d42b3bddcd6ebd84c250e3..2180968ce1a6005563220f861e95069ebbf961e1 100644
+--- a/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
++++ b/src/main/java/net/minecraft/world/level/levelgen/PhantomSpawner.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.world.level.levelgen;
+ 
+ import java.util.Iterator;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.server.level.ServerLevel;
+@@ -73,7 +75,15 @@ public class PhantomSpawner implements CustomSpawner {
+ 
+                                     if (randomsource.nextInt(j) >= world.paperConfig().entities.behavior.playerInsomniaStartTicks) { // Paper
+                                         BlockPos blockposition1 = blockposition.above(20 + randomsource.nextInt(15)).east(-10 + randomsource.nextInt(21)).south(-10 + randomsource.nextInt(21));
+-                                        BlockState iblockdata = world.getBlockState(blockposition1);
++                                        // Gale start - MultiPaper - don't load chunks to spawn phantoms
++                                        BlockState iblockdata;
++                                        if (MoliaConfig.loadChunkForSpawningPhantoms) {
++                                            iblockdata = world.getBlockState(blockposition1);
++                                        } else {
++                                            iblockdata = world.getBlockStateIfLoaded(blockposition1);
++                                            if (iblockdata == null) continue;
++                                        }
++                                        // Gale end - MultiPaper - don't load chunks to spawn phantoms
+                                         FluidState fluid = world.getFluidState(blockposition1);
+ 
+                                         if (NaturalSpawner.isValidEmptySpawnBlock(world, blockposition1, iblockdata, fluid, EntityType.PHANTOM)) {

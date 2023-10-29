@@ -1,0 +1,128 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 18:09:40 +0800
+Subject: [PATCH] Kaiiju unsafe teleportation & add config for gravity block
+ duping
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 0fc44be7ce98cd590fc356b053210b088898ad13..a45f0ad8a00912518997fa52a3baa9f0adf6bddd 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -8,12 +8,20 @@ import java.io.IOException;
+ 
+ public class MoliaConfig {
+     //All values
++    public static boolean allowGravityBlockDupe = false;
++    public static boolean safeTeleportation = true;
++
++    public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+     private static final File CONFIG_FILE = new File("molia.yml");
+ 
+     public static void loadAllValues(){
++        allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
++        safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
++        entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
++
+         save();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index e1b6673729e71bdc929bc7b76983108a59e55891..56625fd12c7438e90d5d91e3aac6c4d75cda7819 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -4010,6 +4010,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+ 
+     protected boolean tryEndPortal() {
+         io.papermc.paper.util.TickThread.ensureTickThread(this, "Cannot portal entity async");
++        if (!MoliaConfig.safeTeleportation && !(this instanceof net.minecraft.world.entity.player.Player)) return false; // Kaiiju - Unsafe teleportation
+         BlockPos pos = this.portalBlock;
+         ServerLevel world = this.portalWorld;
+         this.portalBlock = null;
+diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index 8e348099d6b3eb4510405d76453d70e7cadeebf6..b5061e2020461f8ab95af1ab559e90de2773e46b 100644
+--- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
+ import java.util.Iterator;
+ import java.util.function.Predicate;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.CrashReportCategory;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+@@ -133,7 +135,7 @@ public class FallingBlockEntity extends Entity {
+     @Override
+     public void tick() {
+         // Paper start - fix sand duping
+-        if (this.isRemoved()) {
++        if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+             return;
+         }
+         // Paper end - fix sand duping
+@@ -150,7 +152,7 @@ public class FallingBlockEntity extends Entity {
+             this.move(MoverType.SELF, this.getDeltaMovement());
+ 
+             // Paper start - fix sand duping
+-            if (this.isRemoved()) {
++            if (this.isRemoved() && !MoliaConfig.allowGravityBlockDupe) { //Molia - Add config for gravity block duping fixes
+                 return;
+             }
+             // Paper end - fix sand duping
+diff --git a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+index 41d7cff39fc37955877668337689b4b26cd8c7cf..e09e43784a49da54c88032e094034f46602aac60 100644
+--- a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+@@ -1,10 +1,10 @@
+ package net.minecraft.world.level.block;
+ 
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.particles.ParticleTypes;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.server.level.ServerLevel;
+-import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.RandomSource;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.item.ItemStack;
+@@ -20,8 +20,6 @@ import net.minecraft.world.phys.shapes.BooleanOp;
+ import net.minecraft.world.phys.shapes.CollisionContext;
+ import net.minecraft.world.phys.shapes.Shapes;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+-import org.bukkit.event.entity.EntityPortalEnterEvent;
+-import org.bukkit.event.player.PlayerTeleportEvent;
+ // CraftBukkit end
+ 
+ public class EndPortalBlock extends BaseEntityBlock {
+@@ -44,7 +42,9 @@ public class EndPortalBlock extends BaseEntityBlock {
+ 
+     @Override
+     public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+-        if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, pos)).callEvent()) { return; } // Paper
++        if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, pos)).callEvent()) {
++            return;
++        } // Paper
+         if (world instanceof ServerLevel && entity.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move((double) (-pos.getX()), (double) (-pos.getY()), (double) (-pos.getZ()))), state.getShape(world, pos), BooleanOp.AND)) {
+             ResourceKey<Level> resourcekey = world.getTypeKey() == LevelStem.END ? Level.OVERWORLD : Level.END; // CraftBukkit - SPIGOT-6152: send back to main overworld in custom ends
+             ServerLevel worldserver = ((ServerLevel) world).getServer().getLevel(resourcekey);
+@@ -53,8 +53,15 @@ public class EndPortalBlock extends BaseEntityBlock {
+                 // return; // CraftBukkit - always fire event in case plugins wish to change it
+             }
+ 
++            // Kaiiju start - Unsafe teleportation
++            if (!MoliaConfig.safeTeleportation && !(entity instanceof net.minecraft.world.entity.player.Player)) {
++                entity.endPortalLogicAsync();
++                return;
++            }
++            // Kaiiju end
++
+             // Paper start - move all of this logic into portal tick
+-            entity.portalWorld = ((ServerLevel)world);
++            entity.portalWorld = ((ServerLevel) world);
+             entity.portalBlock = pos.immutable();
+             // Paper end - move all of this logic into portal tick
+         }

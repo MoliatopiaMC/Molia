@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: violetc <admin@s-yh-china.com>
+Date: Fri, 29 Oct 2021 16:59:07 +0800
+Subject: [PATCH] Leaves Server Config
+
+
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index b6a8217b97842cd07af24fadb21e0e44226e5bb9..ef03c69daab0ccfae64226d903d6e4447fc9cca9 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -2120,6 +2120,14 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+             throw new UnsupportedOperationException("Not supported yet.");
+         }
+         // Paper end
++		
++		// Leaves start - Not supported yet too
++		@NotNull
++		public org.bukkit.configuration.file.YamlConfiguration getLeavesConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++		// Leaves end - Not supported yet too
+ 
+         /**
+          * Sends the component to the player

@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 20:54:43 +0800
+Subject: [PATCH] Init config on server startup
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 30cebed4e1c6fbb943653579f14cfc712ff0f7a3..d334b3aa4f311f57f2c41ced6c2265c817b78a76 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -8,12 +8,15 @@ import java.io.IOException;
+ 
+ public class MoliaConfig {
+     //All values
+-
+     //
+ 
+     private static final YamlConfiguration configEntry = new YamlConfiguration();
+     private static final File CONFIG_FILE = new File("molia.yml");
+ 
++    public static void loadAllValues(){
++        save();
++    }
++
+     public static void init(){
+         try {
+             configEntry.load(CONFIG_FILE);
+@@ -22,6 +25,7 @@ public class MoliaConfig {
+             e.printStackTrace();
+         }
+         configEntry.options().copyDefaults(true);
++        loadAllValues();
+     }
+ 
+     public static void save(){
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index a9fe3d1c0fc217bd32e884c9e75c906d8b4bf967..0f11ff033c4fefe40da7970feac851257cb80432 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -19,6 +19,8 @@ import java.util.Locale;
+ import java.util.Optional;
+ import java.util.function.BooleanSupplier;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.DefaultUncaughtExceptionHandler;
+ import net.minecraft.DefaultUncaughtExceptionHandlerWithName;
+ import net.minecraft.SharedConstants;
+@@ -221,6 +223,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
+         io.papermc.paper.brigadier.PaperBrigadierProviderImpl.INSTANCE.getClass(); // init PaperBrigadierProvider
+         // Paper end
++        MoliaConfig.init(); //Molia
+ 
+         this.setPvpAllowed(dedicatedserverproperties.pvp);
+         this.setFlightAllowed(dedicatedserverproperties.allowFlight);

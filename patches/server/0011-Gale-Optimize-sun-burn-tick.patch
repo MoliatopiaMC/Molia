@@ -1,0 +1,105 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 18:26:20 +0800
+Subject: [PATCH] Gale Optimize sun burn tick
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65667afd66 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -306,8 +306,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     public double xo;
+     public double yo;
+     public double zo;
+-    private Vec3 position;
+-    private BlockPos blockPosition;
++    public Vec3 position;
++    public BlockPos blockPosition; // Pufferfish - private->public
+     private ChunkPos chunkPosition;
+     private Vec3 deltaMovement;
+     private float yRot;
+@@ -315,6 +315,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     public float yRotO;
+     public float xRotO;
+     private AABB bb;
++    private boolean boundingBoxChanged = false; // Gale - VMP - skip entity move if movement is zero
+     public boolean onGround;
+     public boolean horizontalCollision;
+     public boolean verticalCollision;
+@@ -1062,6 +1063,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     // Paper end - detailed watchdog information
+ 
+     public void move(MoverType movementType, Vec3 movement) {
++        // Gale start - VMP - skip entity move if movement is zero
++        if (!this.boundingBoxChanged && movement.equals(Vec3.ZERO)) {
++            return;
++        }
++        // Gale end - VMP - skip entity move if movement is zero
+         // Paper start - detailed watchdog information
+         io.papermc.paper.util.TickThread.ensureTickThread("Cannot move an entity off-main");
+         synchronized (this.posLock) {
+@@ -2006,6 +2012,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+         return this.level().hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level().getLightLevelDependentMagicValue(BlockPos.containing(this.getX(), this.getEyeY(), this.getZ())) : 0.0F;
+     }
+ 
++    // Gale start - JettPack - optimize sun burn tick - allow passing BlockPos to getLightLevelDependentMagicValue
++    /** @deprecated */
++    @Deprecated
++    public float getLightLevelDependentMagicValue(BlockPos pos) {
++        return this.level().hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level.getLightLevelDependentMagicValue(pos) : 0.0F;
++    }
++    // Gale end - JettPack - optimize sun burn tick - allow passing BlockPos to getLightLevelDependentMagicValue
++
+     public void absMoveTo(double x, double y, double z, float yaw, float pitch) {
+         this.absMoveTo(x, y, z);
+         this.setYRot(yaw % 360.0F);
+@@ -4834,6 +4848,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+     }
+ 
+     public final void setBoundingBox(AABB boundingBox) {
++        // Gale start - VMP - skip entity move if movement is zero
++        if (!this.bb.equals(boundingBox)) {
++            this.boundingBoxChanged = true;
++        }
++        // Gale end - VMP - skip entity move if movement is zero
+         // CraftBukkit start - block invalid bounding boxes
+         double minX = boundingBox.minX,
+                 minY = boundingBox.minY,
+diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
+index 8d6a2966ebf5ff5813575f5451cceaddace53b4c..66b60b15478850ca0667f096b096d447218c2b2a 100644
+--- a/src/main/java/net/minecraft/world/entity/Mob.java
++++ b/src/main/java/net/minecraft/world/entity/Mob.java
+@@ -1731,13 +1731,29 @@ public abstract class Mob extends LivingEntity implements Targeting {
+ 
+     }
+ 
++    // Gale start - JettPack - optimize sun burn tick - cache eye blockpos
++    private BlockPos cached_eye_blockpos;
++    private int cached_position_hashcode;
++    // Gale end - JettPack - optimize sun burn tick - cache eye blockpos
++
+     public boolean isSunBurnTick() {
+         if (this.level().isDay() && !this.level().isClientSide) {
+-            float f = this.getLightLevelDependentMagicValue();
+-            BlockPos blockposition = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
++            // Gale start - JettPack - optimize sun burn tick - optimizations and cache eye blockpos
++            int positionHashCode = this.position.hashCode();
++            if (this.cached_position_hashcode != positionHashCode) {
++                this.cached_eye_blockpos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
++                this.cached_position_hashcode = positionHashCode;
++            }
++
++            float f = this.getLightLevelDependentMagicValue(cached_eye_blockpos); // Pass BlockPos to getBrightness
++
++            // Check brightness first
++            if (f <= 0.5F) return false;
++            if (this.random.nextFloat() * 30.0F >= (f - 0.4F) * 2.0F) return false;
++            // Gale end - JettPack - optimize sun burn tick - optimizations and cache eye blockpos
+             boolean flag = this.isInWaterRainOrBubble() || this.isInPowderSnow || this.wasInPowderSnow;
+ 
+-            if (f > 0.5F && this.random.nextFloat() * 30.0F < (f - 0.4F) * 2.0F && !flag && this.level().canSeeSky(blockposition)) {
++            if (!flag && this.level().canSeeSky(this.cached_eye_blockpos)) { // Gale - JettPack - optimize sun burn tick - optimizations and cache eye blockpos
+                 return true;
+             }
+         }

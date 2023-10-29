@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 20:11:52 +0800
+Subject: [PATCH] Add getStringList to MoliaConfig
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index a8e6813dcb7a537c07e0fda362e131ba6f838cd2..9acd8eba4441326ba96b68842da8ee4f7c27611c 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -1,5 +1,6 @@
+ package me.earthme.molia;
+ 
++import net.minecraft.server.MinecraftServer;
+ import org.bukkit.configuration.InvalidConfigurationException;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ import net.minecraft.world.entity.EntityType;
+@@ -9,6 +10,7 @@ import java.io.IOException;
+ import java.util.Collections;
+ import java.util.Locale;
+ import java.util.Map;
++import java.util.List;
+ 
+ public class MoliaConfig {
+     //All values
+@@ -89,6 +91,11 @@ public class MoliaConfig {
+         return configEntry.getDouble(key);
+     }
+ 
++    public static List<String> getStringList(String key, List<String> def){
++        configEntry.addDefault(key,def);
++        return configEntry.getStringList(key);
++    }
++
+     public static void save(){
+         try {
+             configEntry.save(CONFIG_FILE);

@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wangxyper <wangxyper@163.com>
+Date: Fri, 25 Aug 2023 20:53:07 +0800
+Subject: [PATCH] Add empty config file
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..30cebed4e1c6fbb943653579f14cfc712ff0f7a3
+--- /dev/null
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -0,0 +1,54 @@
++package me.earthme.molia;
++
++import org.bukkit.configuration.InvalidConfigurationException;
++import org.bukkit.configuration.file.YamlConfiguration;
++
++import java.io.File;
++import java.io.IOException;
++
++public class MoliaConfig {
++    //All values
++
++    //
++
++    private static final YamlConfiguration configEntry = new YamlConfiguration();
++    private static final File CONFIG_FILE = new File("molia.yml");
++
++    public static void init(){
++        try {
++            configEntry.load(CONFIG_FILE);
++        }catch (IOException ignored){
++        } catch (InvalidConfigurationException e) {
++            e.printStackTrace();
++        }
++        configEntry.options().copyDefaults(true);
++    }
++
++    public static void save(){
++        try {
++            configEntry.save(CONFIG_FILE);
++        } catch (IOException e) {
++            e.printStackTrace();
++        }
++    }
++
++    public static int getInt(String key,int def){
++        configEntry.addDefault(key,def);
++        return configEntry.getInt(key);
++    }
++
++    public static long getLong(String key,int def){
++        configEntry.addDefault(key,def);
++        return configEntry.getLong(key);
++    }
++
++    public static String getString(String key,String def){
++        configEntry.addDefault(key,def);
++        return configEntry.getString(key);
++    }
++
++    public static boolean getBoolean(String key,boolean def){
++        configEntry.addDefault(key,def);
++        return configEntry.getBoolean(key);
++    }
++}

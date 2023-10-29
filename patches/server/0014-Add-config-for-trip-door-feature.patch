@@ -1,0 +1,98 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 18:14:01 +0800
+Subject: [PATCH] Add config for trip door feature
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 002f9f7ca725857e308d93593daf637d75a82845..480135dbde98160e07fc905adb0cc375b1543f8d 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -11,6 +11,7 @@ public class MoliaConfig {
+     public static boolean allowGravityBlockDupe = false;
+     public static boolean safeTeleportation = true;
+     public static boolean updateTripWireIfRemoving = false;
++    public static boolean breakRedstoneOnTripDoorEarly = true;
+ 
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -21,6 +22,7 @@ public class MoliaConfig {
+ 
+     public static void loadAllValues(){
+ 
++        breakRedstoneOnTripDoorEarly = getBoolean("fixes.break_redstone_early_on_tripdoor",breakRedstoneOnTripDoorEarly);
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+         safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
+diff --git a/src/main/java/net/minecraft/world/level/block/TrapDoorBlock.java b/src/main/java/net/minecraft/world/level/block/TrapDoorBlock.java
+index b9e3c9cd709d42bced85436720ccc7b9c7e49552..24781846af3deeab313a6910d8a5b2ab97d41213 100644
+--- a/src/main/java/net/minecraft/world/level/block/TrapDoorBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/TrapDoorBlock.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.world.level.block;
+ 
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+ import net.minecraft.sounds.SoundSource;
+@@ -124,29 +126,38 @@ public class TrapDoorBlock extends HorizontalDirectionalBlock implements SimpleW
+                     flag1 = eventRedstone.getNewCurrent() > 0;
+                 }
+                 // CraftBukkit end
+-                boolean open = (Boolean) state.getValue(TrapDoorBlock.OPEN) != flag1; // Paper - break redstone on trapdoors early
+-                // Paper start - break redstone on trapdoors early
+-                // note: this must run before any state for this block/its neighborus are written to the world
+-                // we allow the redstone event to fire so that plugins can block
+-                if (flag1 && open) { // if we are now powered and it caused the trap door to open
+-                    // in this case, first check for the redstone on top first
+-                    BlockPos abovePos = pos.above();
+-                    BlockState above = world.getBlockState(abovePos);
+-                    if (above.getBlock() instanceof RedStoneWireBlock) {
+-                        world.setBlock(abovePos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_NEIGHBORS);
+-                        Block.popResource(world, abovePos, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.REDSTONE));
+-                        // now check that this didn't change our state
+-                        if (world.getBlockState(pos) != state) {
+-                            // our state was changed, so we cannot propagate this update
+-                            return;
++                //Molia start - Add config for this fixes
++                if (MoliaConfig.breakRedstoneOnTripDoorEarly){
++                    boolean open = (Boolean) state.getValue(TrapDoorBlock.OPEN) != flag1; // Paper - break redstone on trapdoors early
++                    // Paper start - break redstone on trapdoors early
++                    // note: this must run before any state for this block/its neighborus are written to the world
++                    // we allow the redstone event to fire so that plugins can block
++                    if (flag1 && open) { // if we are now powered and it caused the trap door to open
++                        // in this case, first check for the redstone on top first
++                        BlockPos abovePos = pos.above();
++                        BlockState above = world.getBlockState(abovePos);
++                        if (above.getBlock() instanceof RedStoneWireBlock) {
++                            world.setBlock(abovePos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_NEIGHBORS);
++                            Block.popResource(world, abovePos, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.REDSTONE));
++                            // now check that this didn't change our state
++                            if (world.getBlockState(pos) != state) {
++                                // our state was changed, so we cannot propagate this update
++                                return;
++                            }
+                         }
+                     }
++                    // Paper end - break redstone on trapdoors early
++                    if (open) { // Paper - break redstone on trapdoors early
++                        state = (BlockState) state.setValue(TrapDoorBlock.OPEN, flag1);
++                        this.playSound((Player) null, world, pos, flag1);
++                    }
++                }else{
++                    if ((Boolean) state.getValue(TrapDoorBlock.OPEN) != flag1) {
++                        state = (BlockState) state.setValue(TrapDoorBlock.OPEN, flag1);
++                        this.playSound((Player) null, world, pos, flag1);
++                    }
+                 }
+-                // Paper end - break redstone on trapdoors early
+-                if (open) { // Paper - break redstone on trapdoors early
+-                    state = (BlockState) state.setValue(TrapDoorBlock.OPEN, flag1);
+-                    this.playSound((Player) null, world, pos, flag1);
+-                }
++                //Molia end
+ 
+                 world.setBlock(pos, (BlockState) state.setValue(TrapDoorBlock.POWERED, flag1), 2);
+                 if ((Boolean) state.getValue(TrapDoorBlock.WATERLOGGED)) {

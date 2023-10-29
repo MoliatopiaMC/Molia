@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Sat, 28 Oct 2023 18:14:56 +0800
+Subject: [PATCH] Add config for void trading
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 480135dbde98160e07fc905adb0cc375b1543f8d..6fc335ca98a6b409e46c4390b900a8fa4a34392b 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -12,6 +12,7 @@ public class MoliaConfig {
+     public static boolean safeTeleportation = true;
+     public static boolean updateTripWireIfRemoving = false;
+     public static boolean breakRedstoneOnTripDoorEarly = true;
++    public static boolean allowVoidTrading = false;
+ 
+ 
+     public static double entityWakeUpDurationRatioStandardDeviation = 0.2;
+@@ -21,7 +22,7 @@ public class MoliaConfig {
+     private static final File CONFIG_FILE = new File("molia.yml");
+ 
+     public static void loadAllValues(){
+-
++        allowVoidTrading = getBoolean("fixes.allow_void_trading",allowVoidTrading);
+         breakRedstoneOnTripDoorEarly = getBoolean("fixes.break_redstone_early_on_tripdoor",breakRedstoneOnTripDoorEarly);
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 02937e40d429f42643f77b17c04277be535dc434..a1bdbd87e2ec2f73ddadea65c9fd0d20f41b9dae 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nonnull;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.CrashReport;
+ import net.minecraft.Util;
+ import net.minecraft.core.BlockPos;
+@@ -3015,11 +3017,15 @@ public class ServerLevel extends Level implements WorldGenLevel {
+             // Spigot end
+             // Spigot Start
+             if (entity.getBukkitEntity() instanceof org.bukkit.inventory.InventoryHolder && (!(entity instanceof ServerPlayer) || entity.getRemovalReason() != Entity.RemovalReason.KILLED)) { // SPIGOT-6876: closeInventory clears death message
+-                // Paper start
+-                if (entity.getBukkitEntity() instanceof org.bukkit.inventory.Merchant merchant && merchant.getTrader() != null) {
+-                    merchant.getTrader().closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason.UNLOADED);
++                //Molia start - Add config for this fix
++                if (!MoliaConfig.allowVoidTrading){
++                    // Paper start
++                    if (entity.getBukkitEntity() instanceof org.bukkit.inventory.Merchant merchant && merchant.getTrader() != null) {
++                        merchant.getTrader().closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason.UNLOADED);
++                    }
++                    // Paper end
+                 }
+-                // Paper end
++                //Molia end
+                 for (org.bukkit.entity.HumanEntity h : Lists.newArrayList(((org.bukkit.inventory.InventoryHolder) entity.getBukkitEntity()).getInventory().getViewers())) {
+                     h.closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason.UNLOADED); // Paper
+                 }
