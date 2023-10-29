@@ -5,13 +5,13 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: MoliaCI - Ver/1.20.1
+name: MoliaCI - Dev/1.20.2
 
 on:
   push:
-    branches: [ "ver/1.20.1" ]
+    branches: [ "dev/1.20.2" ]
   pull_request:
-    branches: [ "ver/1.20.1" ]
+    branches: [ "dev/1.20.2" ]
 
 jobs:
   build:
@@ -41,13 +41,13 @@ jobs:
         name: Artifacts
         path: build/libs/
     - name: Rename jar file
-      run: mv build/libs/Molia-paperclip-1.20.1-R0.1-SNAPSHOT-reobf.jar build/libs/molia-1.20.1-paperclip.jar
+      run: mv build/libs/Molia-paperclip-1.20.2-R0.1-SNAPSHOT-reobf.jar build/libs/molia-1.20.2-dev-paperclip.jar
     - name: Release Artifacts
       uses: svenstaro/upload-release-action@v2
       with:
-       release_name: "Molia MC1.20.1 - ${{ github.event.repository.updated_at}}"
-       tag: "1.20.1-${{ github.run_id }}"
+       release_name: "Molia MC1.20.2 dev - ${{ github.event.repository.updated_at}}"
+       tag: "1.20.2-dev-${{ github.run_id }}"
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-       file: "build/libs/molia-1.20.1-paperclip.jar"
+       file: "build/libs/molia-1.20.2-dev-paperclip.jar"
        file_glob: true
        prerelease: false
