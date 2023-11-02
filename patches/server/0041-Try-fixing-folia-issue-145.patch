@@ -1,0 +1,514 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Thu, 2 Nov 2023 20:18:54 +0800
+Subject: [PATCH] Try fixing folia issue #145
+
+
+diff --git a/src/main/java/me/earthme/molia/MoliaConfig.java b/src/main/java/me/earthme/molia/MoliaConfig.java
+index 201bcc430ae74a16aab9f00d2e7abe2f6acbed65..531018fa328842a402adb00a1dc736f08b4d74c1 100644
+--- a/src/main/java/me/earthme/molia/MoliaConfig.java
++++ b/src/main/java/me/earthme/molia/MoliaConfig.java
+@@ -16,6 +16,7 @@ public class MoliaConfig {
+     //All values
+     public static boolean allowGravityBlockDupe = false;
+     public static boolean safeTeleportation = true;
++    public static boolean fixFolia145 = false;
+     public static boolean updateTripWireIfRemoving = false;
+     public static boolean breakRedstoneOnTripDoorEarly = true;
+     public static boolean allowVoidTrading = false;
+@@ -62,6 +63,7 @@ public class MoliaConfig {
+         updateTripWireIfRemoving = getBoolean("fixes.update_tripwire_if_removing",updateTripWireIfRemoving);
+         allowGravityBlockDupe = getBoolean("fixes.allow_gravity_block_dupe",allowGravityBlockDupe);
+         safeTeleportation = getBoolean("fixes.safe_teleportation", safeTeleportation) && !allowGravityBlockDupe;
++        fixFolia145 = getBoolean("fixes.fix_folia_issue_145",fixFolia145);
+ 
+         maxProjectileLoadsPerTick = getInt("optimizations.max_projectile_loads_per_tick",maxProjectileLoadsPerTick);
+         maxProjectileLoadsPerProjectile = getInt("optimizations.max_projectile_loads_per_projectile",maxProjectileLoadsPerProjectile);
+diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index b84fb255d879973b037d1425d1f7c9a734ea68a9..eb4fd01051419c37fbc0c16a60d0349b2dd68ad8 100644
+--- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -6,6 +6,7 @@ import com.mojang.authlib.GameProfile;
+ import com.mojang.brigadier.ParseResults;
+ import com.mojang.brigadier.StringReader;
+ import com.mojang.logging.LogUtils;
++import io.papermc.paper.util.TickThread;
+ import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
+ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+@@ -29,6 +30,8 @@ import java.util.function.UnaryOperator;
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
++
++import me.earthme.molia.MoliaConfig;
+ import net.minecraft.ChatFormatting;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.Util;
+@@ -481,6 +484,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePlayerInput(ServerboundPlayerInputPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         this.player.setPlayerInput(packet.getXxa(), packet.getZza(), packet.isJumping(), packet.isShiftKeyDown());
+     }
+ 
+@@ -498,6 +506,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+ 
+     @Override
+     public void handleMoveVehicle(ServerboundMoveVehiclePacket packet) {
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
+         if (ServerGamePacketListenerImpl.containsInvalidValues(packet.getX(), packet.getY(), packet.getZ(), packet.getYRot(), packet.getXRot())) {
+             this.disconnect(Component.translatable("multiplayer.disconnect.invalid_vehicle_movement"), org.bukkit.event.player.PlayerKickEvent.Cause.INVALID_VEHICLE_MOVEMENT); // Paper - kick event cause
+@@ -752,6 +765,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (packet.getId() == this.awaitingTeleport) {
+             if (this.awaitingPositionFromClient == null) {
+                 this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"), org.bukkit.event.player.PlayerKickEvent.Cause.INVALID_PLAYER_MOVEMENT); // Paper - kick event cause
+@@ -775,6 +793,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleRecipeBookSeenRecipePacket(ServerboundRecipeBookSeenRecipePacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         Optional<? extends RecipeHolder<?>> optional = this.server.getRecipeManager().byKey(packet.getRecipe()); // CraftBukkit - decompile error
+         ServerRecipeBook recipebookserver = this.player.getRecipeBook();
+ 
+@@ -785,12 +808,22 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleRecipeBookChangeSettingsPacket(ServerboundRecipeBookChangeSettingsPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         this.player.getRecipeBook().setBookSetting(packet.getBookType(), packet.isOpen(), packet.isFiltering());
+     }
+ 
+     @Override
+     public void handleSeenAdvancements(ServerboundSeenAdvancementsPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (packet.getAction() == ServerboundSeenAdvancementsPacket.Action.OPENED_TAB) {
+             ResourceLocation minecraftkey = (ResourceLocation) Objects.requireNonNull(packet.getTab());
+             AdvancementHolder advancementholder = this.server.getAdvancements().get(minecraftkey);
+@@ -886,6 +919,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetCommandBlock(ServerboundSetCommandBlockPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (!this.server.isCommandBlockEnabled()) {
+             this.player.sendSystemMessage(Component.translatable("advMode.notEnabled"));
+         } else if (!this.player.canUseGameMasterBlocks() && (!this.player.isCreative() || !this.player.getBukkitEntity().hasPermission("minecraft.commandblock"))) { // Paper - command block permission
+@@ -953,6 +991,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetCommandMinecart(ServerboundSetCommandMinecartPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (!this.server.isCommandBlockEnabled()) {
+             this.player.sendSystemMessage(Component.translatable("advMode.notEnabled"));
+         } else if (!this.player.canUseGameMasterBlocks() && (!this.player.isCreative() || !this.player.getBukkitEntity().hasPermission("minecraft.commandblock"))) { // Paper - command block permission
+@@ -977,6 +1020,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePickItem(ServerboundPickItemPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         // Paper start - validate pick item position
+         if (!(packet.getSlot() >= 0 && packet.getSlot() < this.player.getInventory().items.size())) {
+             ServerGamePacketListenerImpl.LOGGER.warn("{} tried to set an invalid carried item", this.player.getName().getString());
+@@ -1000,6 +1048,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleRenameItem(ServerboundRenameItemPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         AbstractContainerMenu container = this.player.containerMenu;
+ 
+         if (container instanceof AnvilMenu) {
+@@ -1018,6 +1071,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetBeaconPacket(ServerboundSetBeaconPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         AbstractContainerMenu container = this.player.containerMenu;
+ 
+         if (container instanceof BeaconMenu) {
+@@ -1036,6 +1094,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetStructureBlock(ServerboundSetStructureBlockPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.canUseGameMasterBlocks()) {
+             BlockPos blockposition = packet.getPos();
+             BlockState iblockdata = this.player.level().getBlockState(blockposition);
+@@ -1094,6 +1157,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetJigsawBlock(ServerboundSetJigsawBlockPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.canUseGameMasterBlocks()) {
+             BlockPos blockposition = packet.getPos();
+             BlockState iblockdata = this.player.level().getBlockState(blockposition);
+@@ -1117,6 +1185,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleJigsawGenerate(ServerboundJigsawGeneratePacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.canUseGameMasterBlocks()) {
+             BlockPos blockposition = packet.getPos();
+             BlockEntity tileentity = this.player.level().getBlockEntity(blockposition);
+@@ -1133,6 +1206,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSelectTrade(ServerboundSelectTradePacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         int i = packet.getItem();
+         AbstractContainerMenu container = this.player.containerMenu;
+ 
+@@ -1309,6 +1387,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleEntityTagQuery(ServerboundEntityTagQuery packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.hasPermissions(2)) {
+             Entity entity = this.player.level().getEntity(packet.getEntityId());
+ 
+@@ -1324,6 +1407,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleBlockEntityTagQuery(ServerboundBlockEntityTagQuery packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.hasPermissions(2)) {
+             BlockEntity tileentity = this.player.level().getBlockEntity(packet.getPos());
+             CompoundTag nbttagcompound = tileentity != null ? tileentity.saveWithoutMetadata() : null;
+@@ -1335,6 +1423,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleMovePlayer(ServerboundMovePlayerPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (ServerGamePacketListenerImpl.containsInvalidValues(packet.getX(0.0D), packet.getY(0.0D), packet.getZ(0.0D), packet.getYRot(0.0F), packet.getXRot(0.0F))) {
+             this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"), org.bukkit.event.player.PlayerKickEvent.Cause.INVALID_PLAYER_MOVEMENT); // Paper - kick event cause
+         } else {
+@@ -1793,6 +1886,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePlayerAction(ServerboundPlayerActionPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         BlockPos blockposition = packet.getPos();
+ 
+@@ -1927,6 +2025,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleUseItemOn(ServerboundUseItemOnPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         if (!this.checkLimit(packet.timestamp)) return; // Spigot - check limit
+         this.player.connection.ackBlockChangesUpTo(packet.getSequence());
+@@ -1986,6 +2089,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleUseItem(ServerboundUseItemPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         if (!this.checkLimit(packet.timestamp)) return; // Spigot - check limit
+         this.ackBlockChangesUpTo(packet.getSequence());
+@@ -2051,6 +2159,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleTeleportToEntityPacket(ServerboundTeleportToEntityPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isSpectator()) {
+             Iterator iterator = this.server.getAllLevels().iterator();
+ 
+@@ -2070,6 +2183,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePaddleBoat(ServerboundPaddleBoatPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         Entity entity = this.player.getControlledVehicle();
+ 
+         if (entity instanceof Boat) {
+@@ -2141,6 +2259,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetCarriedItem(ServerboundSetCarriedItemPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         if (packet.getSlot() >= 0 && packet.getSlot() < Inventory.getSelectionSize()) {
+             if (packet.getSlot() == this.player.getInventory().selected) { return; } // Paper - don't fire itemheldevent when there wasn't a slot change
+@@ -2540,6 +2663,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleAnimate(ServerboundSwingPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         this.player.resetLastActionTime();
+         // CraftBukkit start - Raytrace to look for 'rogue armswings'
+@@ -2580,6 +2708,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePlayerCommand(ServerboundPlayerCommandPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         // CraftBukkit start
+         if (this.player.isRemoved()) return;
+         switch (packet.getAction()) {
+@@ -2752,6 +2885,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleInteract(ServerboundInteractPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         final ServerLevel worldserver = this.player.serverLevel();
+         final Entity entity = packet.getTarget(worldserver);
+@@ -2900,6 +3038,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleClientCommand(ServerboundClientCommandPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         this.player.resetLastActionTime();
+         ServerboundClientCommandPacket.Action packetplayinclientcommand_enumclientcommand = packet.getAction();
+ 
+@@ -2953,6 +3096,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     public void handleContainerClose(ServerboundContainerClosePacket packet, InventoryCloseEvent.Reason reason) {
+         // Paper end
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+ 
+         if (this.player.isImmobile()) return; // CraftBukkit
+         CraftEventFactory.handleInventoryCloseEvent(this.player, reason); // CraftBukkit // Paper
+@@ -2963,6 +3111,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleContainerClick(ServerboundContainerClickPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         this.player.resetLastActionTime();
+         if (this.player.containerMenu.containerId == packet.getContainerId() && this.player.containerMenu.stillValid(this.player)) { // CraftBukkit
+@@ -3290,6 +3443,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+         }
+         // Paper end
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         this.player.resetLastActionTime();
+         if (!this.player.isSpectator() && this.player.containerMenu.containerId == packet.getContainerId() && this.player.containerMenu instanceof RecipeBookMenu) {
+             if (!this.player.containerMenu.stillValid(this.player)) {
+@@ -3338,6 +3496,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleContainerButtonClick(ServerboundContainerButtonClickPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.isImmobile()) return; // CraftBukkit
+         this.player.resetLastActionTime();
+         if (this.player.containerMenu.containerId == packet.getContainerId() && !this.player.isSpectator()) {
+@@ -3357,6 +3520,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleSetCreativeModeSlot(ServerboundSetCreativeModeSlotPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.gameMode.isCreative()) {
+             boolean flag = packet.getSlotNum() < 0;
+             ItemStack itemstack = packet.getItem();
+@@ -3490,6 +3658,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handlePlayerAbilities(ServerboundPlayerAbilitiesPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         // CraftBukkit start
+         if (this.player.getAbilities().mayfly && this.player.getAbilities().flying != packet.isFlying()) {
+             PlayerToggleFlightEvent event = new PlayerToggleFlightEvent(this.player.getBukkitEntity(), packet.isFlying());
+@@ -3506,6 +3679,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleClientInformation(ServerboundClientInformationPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         // Paper start - do not accept invalid information
+         if (packet.information().viewDistance() < 0) {
+             LOGGER.warn("Disconnecting " + this.player.getScoreboardName() + " for invalid view distance: " + packet.information().viewDistance());
+@@ -3520,6 +3698,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleChangeDifficulty(ServerboundChangeDifficultyPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.hasPermissions(2) || this.isSingleplayerOwner()) {
+             // this.server.setDifficulty(packet.getDifficulty(), false); // Paper - don't allow clients to change this
+         }
+@@ -3528,6 +3711,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleLockDifficulty(ServerboundLockDifficultyPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         if (this.player.hasPermissions(2) || this.isSingleplayerOwner()) {
+             this.server.setDifficultyLocked(packet.isLocked());
+         }
+@@ -3536,6 +3724,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleChatSessionUpdate(ServerboundChatSessionUpdatePacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         RemoteChatSession.Data remotechatsession_a = packet.chatSession();
+         ProfilePublicKey.Data profilepublickey_a = this.chatSession != null ? this.chatSession.profilePublicKey().data() : null;
+         ProfilePublicKey.Data profilepublickey_a1 = remotechatsession_a.profilePublicKey();
+@@ -3574,6 +3767,11 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     @Override
+     public void handleChunkBatchReceived(ServerboundChunkBatchReceivedPacket packet) {
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.serverLevel());
++        //Molia start - Try fixing folia issue #145
++        if (!TickThread.isTickThreadFor(this.player) && MoliaConfig.fixFolia145){ //Skip the packet if the player is already in another region but there still are some packets need process in current thread
++            return;
++        }
++        //Molia end
+         this.chunkSender.onChunkBatchReceivedByClient(packet.desiredChunksPerTick());
+     }
+ 

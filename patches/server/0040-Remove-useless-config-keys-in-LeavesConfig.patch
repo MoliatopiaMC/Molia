@@ -1,0 +1,782 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: M2ke4U <79621885+MrHua269@users.noreply.github.com>
+Date: Thu, 2 Nov 2023 20:12:15 +0800
+Subject: [PATCH] Remove useless config keys in LeavesConfig
+
+
+diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+index 5caca2a34849189ea42d2699f6d8672e0d7251cb..7bf0747cd56f894abc8ae24564e27f82ed62b611 100644
+--- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
++++ b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+@@ -157,6 +157,7 @@ public final class NaturalSpawner {
+             // Paper start - only allow spawns upto the limit per chunk and update count afterwards
+             int currEntityCount = info.mobCategoryCounts.getInt(enumcreaturetype);
+             int k1 = limit * info.getSpawnableChunkCount() / NaturalSpawner.MAGIC_NUMBER;
++            //int k1 = limit * world.getLocalPlayers().size();
+             int difference = k1 - currEntityCount;
+ 
+             if (world.paperConfig().entities.spawning.perPlayerMobSpawns) {
+@@ -196,7 +197,7 @@ public final class NaturalSpawner {
+         if (categoryLimit < 1) {
+             return categoryLimit;
+         }
+-        return categoryLimit * spawnableChunkCount / NaturalSpawner.MAGIC_NUMBER;
++        return categoryLimit * spawnableChunkCount / NaturalSpawner.MAGIC_NUMBER; //Molia - fix incorrect mob caps
+     }
+     // Paper end
+ 
+diff --git a/src/main/java/top/leavesmc/leaves/LeavesConfig.java b/src/main/java/top/leavesmc/leaves/LeavesConfig.java
+index b3675ab0b40862993efb71ff9bda6ec82830312d..d8ddf9af9414742165568a435bf39c2a38bf68f3 100644
+--- a/src/main/java/top/leavesmc/leaves/LeavesConfig.java
++++ b/src/main/java/top/leavesmc/leaves/LeavesConfig.java
+@@ -7,10 +7,9 @@ import org.bukkit.Bukkit;
+ import org.bukkit.command.Command;
+ import org.bukkit.configuration.ConfigurationSection;
+ import org.bukkit.configuration.file.YamlConfiguration;
+-import top.leavesmc.leaves.command.LeavesCommand;
+ import top.leavesmc.leaves.bot.BotCommand;
+ import top.leavesmc.leaves.bot.agent.Actions;
+-import top.leavesmc.leaves.util.MathUtils;
++import top.leavesmc.leaves.command.LeavesCommand;
+ 
+ import java.io.File;
+ import java.lang.reflect.InvocationTargetException;
+@@ -20,7 +19,6 @@ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.logging.Level;
+-import java.util.Random;
+ 
+ // Powered by Tuinity(https://github.com/Tuinity/Tuinity)
+ 
+@@ -69,7 +67,6 @@ public final class LeavesConfig {
+         updateConfigVersion(config);
+ 
+         LeavesConfig.load(config);
+-        registerCarpetRules();
+ 
+ 	    commands = new HashMap<>();
+         commands.put("leaves", new LeavesCommand("leaves"));
+@@ -108,50 +105,11 @@ public final class LeavesConfig {
+         if (configVersion < CURRENT_CONFIG_VERSION) {
+             switch (configVersion) {
+                 case 1 -> {
+-                    snowballAndEggCanKnockback = config.getBoolean("settings.snowball-and-egg-can-knockback-player", snowballAndEggCanKnockback);
+                     fakeplayerSupport = config.getBoolean("settings.fakeplayer.enable", fakeplayerSupport);
+                     unableFakeplayerNames = (List<String>) config.getList("settings.fakeplayer.unable-fakeplayer-names", unableFakeplayerNames);
+-                    shearsInDispenserCanZeroAmount = config.getBoolean("settings.shears-in-dispenser-can-zero-amount", shearsInDispenserCanZeroAmount);
+-                    redstoneShearsWrench = config.getBoolean("settings.redstone-shears-wrench", redstoneShearsWrench);
+-                    buddingAmethystCanPushByPiston = config.getBoolean("settings.budding-amethyst-can-push-by-piston", buddingAmethystCanPushByPiston);
+-                    spectatorDontGetAdvancement = config.getBoolean("settings.spectator-dont-get-advancement", spectatorDontGetAdvancement);
+-                    stickChangeArmorStandArmStatus = config.getBoolean("settings.stick-change-armorstand-arm-status", stickChangeArmorStandArmStatus);
+-                    noChatSign = config.getBoolean("settings.no-chat-sign", noChatSign);
+ 
+-                    config.set("settings.snowball-and-egg-can-knockback-player", null);
+                     config.set("settings.player-can-edit-sign", null);
+                     config.set("settings.fakeplayer", null);
+-                    config.set("settings.shears-in-dispenser-can-zero-amount", null);
+-                    config.set("settings.redstone-shears-wrench", null);
+-                    config.set("settings.budding-amethyst-can-push-by-piston", null);
+-                    config.set("settings.spectator-dont-get-advancement", null);
+-                    config.set("settings.stick-change-armorstand-arm-status", null);
+-                    config.set("settings.no-chat-sign", null);
+-                }
+-
+-                case 2 -> {
+-                    config.set("settings.modify.player-can-edit-sign", null);
+-                    config.set("settings.performance.skip-clone-loot-parameters", null);
+-                }
+-
+-                case 3 -> {
+-                    boolean carpetAlternative = config.getBoolean("settings.protocol.carpet-alternative-block-placement", false);
+-                    alternativeBlockPlacement = carpetAlternative ? "CARPET" : "NONE";
+-                    config.set("settings.protocol.carpet-alternative-block-placement", null);
+-                }
+-
+-                case 4 -> {
+-                    shearsInDispenserCanZeroAmount = config.getBoolean("settings.modify.shears-in-dispenser-can-zero-amount", shearsInDispenserCanZeroAmount);
+-                    instantBlockUpdaterReintroduced = config.getBoolean("settings.modify.instant-block-updater-reintroduced", instantBlockUpdaterReintroduced);
+-                    redstoneDontCantOnTrapDoor = config.getBoolean("settings.modify.redstone-wire-dont-connect-if-on-trapdoor", redstoneDontCantOnTrapDoor);
+-                    mendingCompatibilityInfinity = config.getBoolean("settings.modify.mending-compatibility-infinity", mendingCompatibilityInfinity);
+-                    zeroTickPlants = config.getBoolean("settings.modify.zero-tick-plants", zeroTickPlants);
+-
+-                    config.set("settings.modify.shears-in-dispenser-can-zero-amount", null);
+-                    config.set("settings.modify.instant-block-updater-reintroduced", null);
+-                    config.set("settings.modify.redstone-wire-dont-connect-if-on-trapdoor", null);
+-                    config.set("settings.modify.mending-compatibility-infinity", null);
+-                    config.set("settings.modify.zero-tick-plants", null);
+                 }
+             }
+         }
+@@ -197,11 +155,6 @@ public final class LeavesConfig {
+         return (List<T>) LeavesConfig.config.getList(path, config.getList(path));
+     }
+ 
+-    public static boolean snowballAndEggCanKnockback = true;
+-    private static void snowballAndEggCanKnockback() {
+-        snowballAndEggCanKnockback = getBoolean("settings.modify.snowball-and-egg-can-knockback-player", snowballAndEggCanKnockback);
+-    }
+-
+     public static boolean fakeplayerSupport = true;
+     public static List<String> unableFakeplayerNames = List.of("player-name");
+     public static int fakeplayerLimit = 10;
+@@ -227,659 +180,6 @@ public final class LeavesConfig {
+         fakeplayerRegenAmount = (float) getDouble("settings.modify.fakeplayer.regen-amount", fakeplayerRegenAmount);
+     }
+ 
+-    public static boolean shearsInDispenserCanZeroAmount = false;
+-    private static void shearsInDispenserCanZeroAmount() {
+-        shearsInDispenserCanZeroAmount = getBoolean("settings.modify.minecraft-old.shears-in-dispenser-can-zero-amount", shearsInDispenserCanZeroAmount);
+-    }
+-
+-    public static boolean redstoneShearsWrench = true;
+-    private static void redstoneShearsWrench() {
+-        redstoneShearsWrench = getBoolean("settings.modify.redstone-shears-wrench", redstoneShearsWrench);
+-    }
+-
+-    public static boolean buddingAmethystCanPushByPiston = false;
+-    private static void buddingAmethystCanPushByPiston() {
+-        buddingAmethystCanPushByPiston = getBoolean("settings.modify.budding-amethyst-can-push-by-piston", buddingAmethystCanPushByPiston);
+-    }
+-
+-    public static boolean spectatorDontGetAdvancement = false;
+-    private static void spectatorDontGetAdvancement() {
+-        spectatorDontGetAdvancement = getBoolean("settings.modify.spectator-dont-get-advancement", spectatorDontGetAdvancement);
+-    }
+-
+-    public static boolean stickChangeArmorStandArmStatus = true;
+-    private static void stickChangeArmorStandHasArm() {
+-        stickChangeArmorStandArmStatus = getBoolean("settings.modify.stick-change-armorstand-arm-status", stickChangeArmorStandArmStatus);
+-    }
+-
+-    public static boolean noChatSign = true;
+-    private static void noChatSign() {
+-        noChatSign = getBoolean("settings.misc.no-chat-sign", noChatSign);
+-    }
+-
+-    public static boolean asyncMobSpawning = false;
+-    private static boolean asyncMobSpawningLock = false;
+-    private static void asyncMobSpawning() {
+-        if (!asyncMobSpawningLock) {
+-            asyncMobSpawning = getBoolean("settings.performance.async-mob-spawning", asyncMobSpawning);
+-            asyncMobSpawningLock = true;
+-        }
+-    }
+-
+-    public static boolean dontSendUselessEntityPackets = true;
+-    private static void dontSendUselessEntityPackets() {
+-        dontSendUselessEntityPackets = getBoolean("settings.performance.dont-send-useless-entity-packets", dontSendUselessEntityPackets);
+-    }
+-
+-    public static boolean asyncEntityTracker = false;
+-    private static boolean asyncEntityTrackerLock = false;
+-    private static void asyncEntityTracker() {
+-        if (!asyncEntityTrackerLock) {
+-            asyncEntityTracker = getBoolean("settings.performance.async-entity-tracker", asyncEntityTracker);
+-            asyncEntityTrackerLock = true;
+-        }
+-
+-        if (asyncEntityTracker) {
+-            asyncEntityTracker = false;
+-            LeavesLogger.LOGGER.severe("Async EntityTracker is updating, it can't work");
+-        }
+-    }
+-
+-    public static boolean fixPaper6045 = true;
+-    private static void fixPaper6045() {
+-        fixPaper6045 = getBoolean("settings.performance.fix.fix-paper-6045", fixPaper6045);
+-    }
+-
+-    public static boolean optimizeEntityCoordinateKey = true;
+-    private static void optimizeEntityCoordinateKey() {
+-        optimizeEntityCoordinateKey = getBoolean("settings.performance.optimize-entity-coordinate-key", optimizeEntityCoordinateKey);
+-    }
+-
+-    public static boolean enableSuffocationOptimization = true;
+-    private static void enableSuffocationOptimization() {
+-        enableSuffocationOptimization = getBoolean("settings.performance.enable-suffocation-optimization", enableSuffocationOptimization);
+-    }
+-
+-    public static boolean entityStripRaytracing = true;
+-    private static void entityStripRaytracing() {
+-        entityStripRaytracing = getBoolean("settings.performance.strip-raytracing-for-entity", entityStripRaytracing);
+-    }
+-
+-    public static boolean checkSpookySeasonOnceAnHour = true;
+-    private static void checkSpookySeasonOnceAnHour() {
+-        checkSpookySeasonOnceAnHour = getBoolean("settings.performance.check-spooky-season-once-an-hour", checkSpookySeasonOnceAnHour);
+-    }
+-
+-    public static boolean optimizeChunkTicking = true;
+-    private static boolean optimizeChunkTickingLock = false;
+-    private static void optimizeChunkTicking() {
+-        if (!optimizeChunkTickingLock) {
+-            optimizeChunkTicking = getBoolean("settings.performance.optimize-chunk-ticking", optimizeChunkTicking);
+-            optimizeChunkTickingLock = true;
+-        }
+-    }
+-
+-    public static boolean skipPOIFindingInVehicle = true;
+-    private static void skipPOIFindingInVehicle() {
+-        skipPOIFindingInVehicle = getBoolean("settings.performance.skip-poi-find-in-vehicle", skipPOIFindingInVehicle);
+-    }
+-
+-    public static boolean entityTargetFindingOptimization = true;
+-    private static void entityTargetFindingOptimization() {
+-        entityTargetFindingOptimization = getBoolean("settings.performance.entity-target-find-optimization", entityTargetFindingOptimization);
+-    }
+-
+-    public static boolean useMoreThreadUnsafeRandom = true;
+-    private static void useMoreThreadUnsafeRandom() {
+-        useMoreThreadUnsafeRandom = getBoolean("settings.performance.use-more-thread-unsafe-random", useMoreThreadUnsafeRandom);
+-    }
+-
+-    public static boolean disableMethodProfiler = true;
+-    private static void disableMethodProfiler() {
+-        disableMethodProfiler = getBoolean("settings.misc.disable-method-profiler", disableMethodProfiler);
+-    }
+-
+-    public static boolean throttleInactiveGoalSelectorTick = false;
+-    private static void throttleInactiveGoalSelectorTick() {
+-        throttleInactiveGoalSelectorTick = getBoolean("settings.performance.inactive-goal-selector-disable", throttleInactiveGoalSelectorTick);
+-    }
+-
+-    public static boolean reduceEntityAllocations = true;
+-    private static void reduceEntityAllocations() {
+-        reduceEntityAllocations = getBoolean("settings.performance.reduce-entity-allocations", reduceEntityAllocations);
+-    }
+-
+-    public static boolean removeTickGuardLambda = true;
+-    private static void removeTickGuardLambda() {
+-        removeTickGuardLambda = getBoolean("settings.performance.remove.tick-guard-lambda", removeTickGuardLambda);
+-    }
+-
+-    public static boolean removeInventoryContainsIterators = true;
+-    private static void removeInventoryContainsIterators() {
+-        removeInventoryContainsIterators = getBoolean("settings.performance.remove.inventory-contains-iterators", removeInventoryContainsIterators);
+-    }
+-
+-    public static boolean removeGetNearPlayerStreams = true;
+-    private static void removeGetNearPlayerStreams() {
+-        removeGetNearPlayerStreams = getBoolean("settings.performance.remove.get-nearby-players-streams", removeGetNearPlayerStreams);
+-    }
+-
+-    public static boolean removeRangeCheckStreams = true;
+-    private static void removeRangeCheckStreams() {
+-        removeRangeCheckStreams = getBoolean("settings.performance.remove.range-check-streams-and-iterators", removeRangeCheckStreams);
+-    }
+-
+-    // only config now
+-    public static boolean asyncPathfinding = false;
+-    private static boolean asyncPathfindingLock = false;
+-    private static void asyncPathfinding() {
+-        if (!asyncPathfindingLock) {
+-            asyncPathfinding = getBoolean("settings.performance.async-pathfinding", asyncPathfinding);
+-            asyncPathfindingLock = true;
+-        }
+-
+-        if (asyncPathfinding) {
+-            asyncPathfinding = false;
+-            LeavesLogger.LOGGER.severe("Async Pathfinding is updating, it can't work");
+-        }
+-    }
+-
+-    public static boolean cacheClimbCheck = true;
+-    private static void cacheClimbCheck() {
+-        cacheClimbCheck = getBoolean("settings.performance.cache-climb-check", cacheClimbCheck);
+-    }
+-
+-    public static boolean biomeTemperaturesUseAgingCache = true;
+-    private static boolean biomeTemperaturesUseAgingCacheLock = false;
+-    private static void biomeTemperaturesUseAgingCache() {
+-        if (!biomeTemperaturesUseAgingCacheLock) {
+-            biomeTemperaturesUseAgingCache = getBoolean("settings.performance.biome-temperatures-use-aging-cache", biomeTemperaturesUseAgingCache);
+-            biomeTemperaturesUseAgingCacheLock = true;
+-        }
+-    }
+-
+-    public static boolean reduceEntityFluidLookup = true;
+-    private static void reduceEntityFluidLookup() {
+-        reduceEntityFluidLookup = getBoolean("settings.performance.reduce-entity-fluid-lookup", reduceEntityFluidLookup);
+-    }
+-
+-    public static boolean reduceChuckLoadAndLookup = true;
+-    private static void reduceChuckLoadAndLookup() {
+-        reduceChuckLoadAndLookup = getBoolean("settings.performance.reduce-chuck-load-and-lookup", reduceChuckLoadAndLookup);
+-    }
+-
+-    public static boolean pcaSyncProtocol = false;
+-    private static void pcaSyncProtocol() {
+-        pcaSyncProtocol = getBoolean("settings.protocol.pca-sync-protocol", pcaSyncProtocol);
+-    }
+-
+-    public static String pcaSyncPlayerEntity = "OPS";
+-    private static final List<String> pcaSyncPlayerEntityList = List.of("NOBODY", "BOT", "OPS", "OPS_AND_SELF", "EVERYONE");
+-    private static void pcaSyncPlayerEntity() {
+-        pcaSyncPlayerEntity = getString("settings.protocol.pca-sync-player-entity", pcaSyncPlayerEntity);
+-        if (!pcaSyncPlayerEntityList.contains(pcaSyncPlayerEntity)) {
+-            pcaSyncPlayerEntity = "OPS";
+-            LeavesLogger.LOGGER.severe("pca-sync-player-entity value error, reset to OPS");
+-        }
+-    }
+-
+-    public static boolean bborProtocol = false;
+-    private static void bborProtocol() {
+-        bborProtocol = getBoolean("settings.protocol.bbor-protocol", bborProtocol);
+-    }
+-
+-    public static boolean instantBlockUpdaterReintroduced = false;
+-    private static boolean instantBlockUpdaterReintroducedLock = false;
+-    private static void instantBlockUpdaterReintroduced() {
+-        if (!instantBlockUpdaterReintroducedLock) {
+-            instantBlockUpdaterReintroduced = getBoolean("settings.modify.minecraft-old.instant-block-updater-reintroduced", instantBlockUpdaterReintroduced);
+-            instantBlockUpdaterReintroducedLock = true;
+-        }
+-    }
+-
+-    public static boolean flattenTriangularDistribution = false;
+-    private static void flattenTriangularDistribution() {
+-        flattenTriangularDistribution = getBoolean("settings.modify.flatten-triangular-distribution", flattenTriangularDistribution);
+-    }
+-
+-    public static boolean jadeProtocol = false;
+-    private static void jadeProtocol() {
+-        jadeProtocol = getBoolean("settings.protocol.jade-protocol", jadeProtocol);
+-    }
+-
+-    public static String alternativeBlockPlacement = "NONE";
+-    private static final List<String> alternativeBlockPlacementType = List.of("NONE", "CARPET", "CARPET_FIX", "LITEMATICA");
+-    private static void alternativeBlockPlacement() {
+-        alternativeBlockPlacement = getString("settings.protocol.alternative-block-placement", alternativeBlockPlacement);
+-        if (!alternativeBlockPlacementType.contains(alternativeBlockPlacement)) {
+-            alternativeBlockPlacement = "NONE";
+-            LeavesLogger.LOGGER.severe("alternative-block-placement value error, reset to NONE");
+-        }
+-    }
+-
+-    public static boolean playerOperationLimiter = false;
+-    private static void playerOperationLimiter() {
+-        playerOperationLimiter = getBoolean("settings.modify.player-operation-limiter", playerOperationLimiter);
+-    }
+-
+-    public static double renewableElytra = -1.0;
+-    private static void renewableElytra() {
+-        renewableElytra = getDouble("settings.modify.renewable-elytra", renewableElytra);
+-    }
+-
+-    public static int shulkerBoxStackSize = 1;
+-    private static String stackableShulkerBoxes = "false";
+-    private static void stackableShulkerBoxes() {
+-        stackableShulkerBoxes = getString("settings.modify.stackable-shulker-boxes", stackableShulkerBoxes);
+-        stackableShulkerBoxes = MathUtils.isNumeric(stackableShulkerBoxes) ? stackableShulkerBoxes : stackableShulkerBoxes.equals("true") ? "2" : "1";
+-        shulkerBoxStackSize = Integer.parseInt(stackableShulkerBoxes);
+-    }
+-
+-    public static boolean improveFluidDirectionCaching = true;
+-    private static boolean improveFluidDirectionCachingLock = false;
+-    private static void improveFluidDirectionCaching() {
+-        if (!improveFluidDirectionCachingLock) {
+-            improveFluidDirectionCaching = getBoolean("settings.performance.improve-fluid-direction-caching", improveFluidDirectionCaching);
+-            improveFluidDirectionCachingLock = true;
+-        }
+-    }
+-
+-    public static boolean mcTechnicalMode = true;
+-    private static void mcTechnicalMode() {
+-        mcTechnicalMode = getBoolean("settings.modify.mc-technical-survival-mode", mcTechnicalMode);
+-        doMcTechnicalMode();
+-    }
+-
+-    public static void doMcTechnicalMode() {
+-        if (mcTechnicalMode) {
+-        }
+-    }
+-
+-    public static boolean netherPortalFix = false;
+-    private static void netherPortalFix() {
+-        netherPortalFix = getBoolean("settings.modify.return-nether-portal-fix", netherPortalFix);
+-    }
+-
+-    public static boolean appleskinProtocol = false;
+-    private static void appleskinProtocol() {
+-        appleskinProtocol = getBoolean("settings.protocol.appleskin-protocol", appleskinProtocol);
+-    }
+-
+-    public static boolean xaeroMapProtocol = false;
+-    public static int xaeroMapServerID = new Random().nextInt();
+-    private static void xaeroMapProtocol() {
+-        xaeroMapProtocol = getBoolean("settings.protocol.xaero-map-protocol", xaeroMapProtocol);
+-        xaeroMapServerID = getInt("settings.protocol.xaero-map-server-id", xaeroMapServerID);
+-    }
+-
+-    public static boolean extraYggdrasilService = false;
+-    public static boolean extraYggdrasilLoginProtect = false;
+-    public static List<String> extraYggdrasilServiceList = List.of("https://url.with.authlib-injector-yggdrasil");
+-    private static void extraYggdrasilService() {
+-        extraYggdrasilService = getBoolean("settings.misc.extra-yggdrasil-service.enable", extraYggdrasilService);
+-        extraYggdrasilLoginProtect = getBoolean("settings.misc.extra-yggdrasil-service.login-protect", extraYggdrasilLoginProtect);
+-        extraYggdrasilServiceList = getList("settings.misc.extra-yggdrasil-service.urls", extraYggdrasilServiceList);
+-        if (extraYggdrasilService) {
+-        }
+-    }
+-
+-    public static boolean useVanillaRandom = false;
+-    private static boolean useVanillaRandomLock = false;
+-    private static void useVanillaRandom() {
+-        if (!useVanillaRandomLock) {
+-            useVanillaRandom = getBoolean("settings.modify.use-vanilla-random", useVanillaRandom);
+-            useVanillaRandomLock = true;
+-        }
+-    }
+-
+-    public static boolean updateSuppressionCrashFix = true;
+-    private static void updateSuppressionCrashFix() {
+-        updateSuppressionCrashFix = getBoolean("settings.modify.fix-update-suppression-crash", updateSuppressionCrashFix);
+-    }
+-
+-    public static boolean bedrockBreakList = false;
+-    private static boolean bedrockBreakListLock = false;
+-    private static void bedrockBreakList() {
+-        if (!bedrockBreakListLock) {
+-            bedrockBreakList = getBoolean("settings.modify.bedrock-break-list", bedrockBreakList);
+-            bedrockBreakListLock = true;
+-        }
+-    }
+-
+-    public static boolean syncmaticaProtocol = false;
+-    public static boolean syncmaticaQuota = false;
+-    public static int syncmaticaQuotaLimit = 40000000;
+-    private static void syncmaticaProtocol() {
+-        syncmaticaProtocol = getBoolean("settings.protocol.syncmatica.enable", syncmaticaProtocol);
+-        syncmaticaQuota = getBoolean("settings.protocol.syncmatica.quota", syncmaticaQuota);
+-        syncmaticaQuotaLimit = getInt("settings.protocol.syncmatica.quota-limit", syncmaticaQuotaLimit);
+-        if (syncmaticaProtocol) {
+-        }
+-    }
+-
+-    public static boolean disableDistanceCheckForUseItem = false;
+-    private static void disableDistanceCheckForUseItem() {
+-        disableDistanceCheckForUseItem = getBoolean("settings.modify.disable-distance-check-for-use-item", disableDistanceCheckForUseItem);
+-        if (!alternativeBlockPlacement.equals("NONE")) {
+-            disableDistanceCheckForUseItem = true;
+-        }
+-    }
+-
+-    public static boolean noFeatherFallingTrample = false;
+-    private static void noFeatherFallingTrample() {
+-        noFeatherFallingTrample = getBoolean("settings.modify.no-feather-falling-trample", noFeatherFallingTrample);
+-    }
+-
+-    public static boolean sharedVillagerDiscounts = false;
+-    private static void sharedVillagerDiscounts() {
+-        sharedVillagerDiscounts = getBoolean("settings.modify.shared-villager-discounts", sharedVillagerDiscounts);
+-    }
+-
+-    public static boolean redstoneDontCantOnTrapDoor = false;
+-    private static void redstoneDontCantOnTrapDoor() {
+-        redstoneDontCantOnTrapDoor = getBoolean("settings.modify.minecraft-old.redstone-wire-dont-connect-if-on-trapdoor", redstoneDontCantOnTrapDoor);
+-    }
+-
+-    public static boolean disableCheckOutOfOrderCommand = false;
+-    private static void disableCheckOutOfOrderCommand() {
+-        disableCheckOutOfOrderCommand = getBoolean("settings.modify.disable-check-out-of-order-command", disableCheckOutOfOrderCommand);
+-    }
+-
+-    public static boolean despawnEndermanWithBlock = false;
+-    private static void despawnEndermanWithBlock() {
+-        despawnEndermanWithBlock = getBoolean("settings.modify.despawn-enderman-with-block", despawnEndermanWithBlock);
+-    }
+-
+-    public static boolean leavesCarpetSupport = false;
+-    private static void leavesCarpetSupport() {
+-        leavesCarpetSupport = getBoolean("settings.protocol.leaves-carpet-support", leavesCarpetSupport);
+-    }
+-
+-    public static void registerCarpetRules() {
+-    }
+-
+-    public static boolean creativeNoClip = false;
+-    private static void creativeNoClip() {
+-        creativeNoClip = getBoolean("settings.modify.creative-no-clip", creativeNoClip);
+-    }
+-
+-    public static boolean optimizedDragonRespawn = false;
+-    private static void optimizedDragonRespawn() {
+-        optimizedDragonRespawn = getBoolean("settings.performance.optimized-dragon-respawn", optimizedDragonRespawn);
+-    }
+-
+-    public static boolean mendingCompatibilityInfinity = false;
+-    private static void mendingCompatibilityInfinity() {
+-        mendingCompatibilityInfinity = getBoolean("settings.modify.minecraft-old.mending-compatibility-infinity", mendingCompatibilityInfinity);
+-    }
+-
+-    public static boolean shaveSnowLayers = true;
+-    private static void shaveSnowLayers() {
+-        shaveSnowLayers = getBoolean("settings.modify.shave-snow-layers", shaveSnowLayers);
+-    }
+-
+-    public static boolean ignoreLC = false;
+-    private static void ignoreLC() {
+-        ignoreLC = getBoolean("settings.modify.ignore-lc", ignoreLC);
+-    }
+-
+-    public static boolean elytraAeronauticsNoChunk = false;
+-    public static double elytraAeronauticsNoChunkHeight = 500.0D;
+-    public static double elytraAeronauticsNoChunkSpeed = -1.0D;
+-    public static boolean elytraAeronauticsNoChunkMes = true;
+-    public static String elytraAeronauticsNoChunkStartMes = "Flight enter cruise mode";
+-    public static String elytraAeronauticsNoChunkEndMes = "Flight exit cruise mode";
+-    private static void elytraAeronautics() {
+-        elytraAeronauticsNoChunk = getBoolean("settings.modify.elytra-aeronautics.no-chunk-load", elytraAeronauticsNoChunk);
+-        elytraAeronauticsNoChunkHeight = getDouble("settings.modify.elytra-aeronautics.no-chunk-height", elytraAeronauticsNoChunkHeight);
+-        elytraAeronauticsNoChunkSpeed = getDouble("settings.modify.elytra-aeronautics.no-chunk-speed", elytraAeronauticsNoChunkSpeed);
+-        elytraAeronauticsNoChunkMes = getBoolean("settings.modify.elytra-aeronautics.message", elytraAeronauticsNoChunkMes);
+-        elytraAeronauticsNoChunkStartMes = getString("settings.modify.elytra-aeronautics.message-start", elytraAeronauticsNoChunkStartMes);
+-        elytraAeronauticsNoChunkEndMes = getString("settings.modify.elytra-aeronautics.message-end", elytraAeronauticsNoChunkEndMes);
+-    }
+-
+-    public static boolean msptSyncProtocol = false;
+-    public static int msptSyncTickInterval = 20;
+-    private static void msptSyncProtocol() {
+-        msptSyncTickInterval = getInt("settings.protocol.bladeren.mspt-sync-tick-interval", msptSyncTickInterval);
+-        msptSyncProtocol = getBoolean("settings.protocol.bladeren.mspt-sync-protocol", msptSyncProtocol);
+-    }
+-
+-    public static boolean fixPaper9372 = true;
+-    private static void fixPaper9372() {
+-        fixPaper9372 = getBoolean("settings.performance.fix.fix-paper-9372", fixPaper9372);
+-    }
+-
+-    public static boolean cacheIgniteOdds = true;
+-    private static void cacheIgniteOdds() {
+-        cacheIgniteOdds = getBoolean("settings.performance.cache-ignite-odds", cacheIgniteOdds);
+-    }
+-
+-    public static boolean lavaRiptide = false;
+-    private static void lavaRiptide() {
+-        lavaRiptide = getBoolean("settings.modify.lava-riptide", lavaRiptide);
+-    }
+-
+-    public static boolean noBlockUpdateCommand = false;
+-    private static void noBlockUpdateCommand() {
+-        noBlockUpdateCommand = getBoolean("settings.modify.no-block-update-command", noBlockUpdateCommand);
+-    }
+-
+-    public static boolean skipSelfRaidCheck = false;
+-    private static void skipSelfRaidCheck() {
+-        skipSelfRaidCheck = getBoolean("settings.modify.raider-die-skip-self-raid-check", skipSelfRaidCheck);
+-    }
+-
+-    public static boolean containerPassthrough = false;
+-    private static void containerPassthrough() {
+-        containerPassthrough = getBoolean("settings.modify.container-passthrough", containerPassthrough);
+-    }
+-
+-    public static boolean dontRespondPingBeforeStart = true;
+-    private static void dontRespondPingBeforeStart() {
+-        dontRespondPingBeforeStart = getBoolean("settings.misc.dont-respond-ping-before-start-fully", dontRespondPingBeforeStart);
+-    }
+-
+-    public static boolean fasterChunkSerialization = true;
+-    private static void fasterChunkSerialization() {
+-        fasterChunkSerialization = getBoolean("settings.performance.faster-chunk-serialization", fasterChunkSerialization);
+-    }
+-
+-    public static boolean optimizeWorldGenerationAccess = true;
+-    private static void optimizeWorldGenerationAccess() {
+-        optimizeWorldGenerationAccess = getBoolean("settings.performance.optimize-world-generation-and-block-access", optimizeWorldGenerationAccess);
+-    }
+-
+-    public static boolean cacheWorldGeneratorSeaLevel = true;
+-    private static void cacheWorldGeneratorSeaLevel() {
+-        cacheWorldGeneratorSeaLevel = getBoolean("settings.performance.cache-world-generator-sea-level", cacheWorldGeneratorSeaLevel);
+-    }
+-
+-    public static boolean skipSecondaryPOISensorIfAbsent = true;
+-    private static void skipSecondaryPOISensorIfAbsent() {
+-        skipSecondaryPOISensorIfAbsent = getBoolean("settings.performance.skip-secondary-POI-sensor-if-absent", skipSecondaryPOISensorIfAbsent);
+-    }
+-
+-    public static boolean cacheCubeVoxelShapeShapeArray = true;
+-    private static void cacheCubeVoxelShapeShapeArray() {
+-        cacheCubeVoxelShapeShapeArray = getBoolean("settings.performance.cache-CubeVoxelShape-shape-array", cacheCubeVoxelShapeShapeArray);
+-    }
+-
+-    public static boolean storeMobCountsInArray = true;
+-    private static void storeMobCountsInArray() {
+-        storeMobCountsInArray = getBoolean("settings.performance.store-mob-counts-in-array", storeMobCountsInArray);
+-    }
+-
+-    public static boolean cacheBlockStatePairKeyHash = true;
+-    private static void cacheBlockStatePairKeyHash() {
+-        cacheBlockStatePairKeyHash = getBoolean("settings.performance.cache-BlockStatePairKey-hash", cacheBlockStatePairKeyHash);
+-    }
+-
+-    public static boolean optimizeNoiseGeneration = false;
+-    private static void optimizeNoiseGeneration() {
+-        optimizeNoiseGeneration = getBoolean("settings.performance.optimize-noise-generation", optimizeNoiseGeneration);
+-    }
+-
+-    public static boolean disablePacketLimit = false;
+-    private static void disablePacketLimit() {
+-        disablePacketLimit = getBoolean("settings.modify.disable-packet-limit", disablePacketLimit);
+-    }
+-
+-    public static boolean optimizeSunBurnTick = true;
+-    private static void optimizeSunBurnTick() {
+-        optimizeSunBurnTick = getBoolean("settings.performance.optimize-sun-burn-tick", optimizeSunBurnTick);
+-    }
+-
+-    public static boolean removeDamageLambda = true;
+-    private static void removeDamageLambda() {
+-        removeDamageLambda = getBoolean("settings.performance.remove.damage-lambda", removeDamageLambda);
+-    }
+-
+-    public static boolean useOptimizedCollection = true;
+-    private static void useOptimizedCollection() {
+-        useOptimizedCollection = getBoolean("settings.performance.use-optimized-collection", useOptimizedCollection);
+-    }
+-
+-    public static boolean optimizedCubePointRange = true;
+-    private static void optimizedCubePointRange() {
+-        optimizedCubePointRange = getBoolean("settings.performance.optimized-CubePointRange", optimizedCubePointRange);
+-    }
+-
+-    public static boolean checkFrozenTicksBeforeLandingBlock = true;
+-    private static void checkFrozenTicksBeforeLandingBlock() {
+-        checkFrozenTicksBeforeLandingBlock = getBoolean("settings.performance.check-frozen-ticks-before-landing-block", checkFrozenTicksBeforeLandingBlock);
+-    }
+-
+-    public static boolean cacheOminousBannerItem = true;
+-    private static void cacheOminousBannerItem() {
+-        cacheOminousBannerItem = getBoolean("settings.performance.cache-ominous-banner-item", cacheOminousBannerItem);
+-    }
+-
+-    public static boolean skipEntityMoveIfMovementIsZero = true;
+-    private static void skipEntityMoveIfMovementIsZero() {
+-        skipEntityMoveIfMovementIsZero = getBoolean("settings.performance.skip-entity-move-if-movement-is-zero", skipEntityMoveIfMovementIsZero);
+-    }
+-
+-    public static boolean skipCloningAdvancementCriteria = false;
+-    private static void skipCloningAdvancementCriteria() {
+-        skipCloningAdvancementCriteria = getBoolean("settings.performance.skip-cloning-advancement-criteria", skipCloningAdvancementCriteria);
+-    }
+-
+-    public static boolean skipNegligiblePlanarMovementMultiplication = true;
+-    private static void skipNegligiblePlanarMovementMultiplication() {
+-        skipNegligiblePlanarMovementMultiplication = getBoolean("settings.performance.skip-negligible-planar-movement-multiplication", skipNegligiblePlanarMovementMultiplication);
+-    }
+-
+-    public static boolean villagersDontReleaseMemoryFix = false;
+-    private static void villagersDontReleaseMemoryFix() {
+-        villagersDontReleaseMemoryFix = getBoolean("settings.performance.fix-villagers-dont-release-memory", villagersDontReleaseMemoryFix);
+-    }
+-
+-    public static boolean avoidAnvilTooExpensive = false;
+-    private static void avoidAnvilTooExpensive() {
+-        avoidAnvilTooExpensive = getBoolean("settings.modify.avoid-anvil-too-expensive", avoidAnvilTooExpensive);
+-    }
+-
+-    public static boolean bowInfinityFix = false;
+-    private static void bowInfinityFix() {
+-        bowInfinityFix = getBoolean("settings.modify.bow-infinity-fix", bowInfinityFix);
+-    }
+-
+-    public static boolean zeroTickPlants = false;
+-    private static void zeroTickPlants() {
+-        zeroTickPlants = getBoolean("settings.modify.minecraft-old.zero-tick-plants", zeroTickPlants);
+-    }
+-
+-    public static boolean bstatsPrivacyMode = false;
+-    private static void bstatsPrivacyMode() {
+-        bstatsPrivacyMode = getBoolean("settings.misc.bstats-privacy-mode", bstatsPrivacyMode);
+-    }
+-
+-    public static boolean autoUpdate = false;
+-    public static List<String> autoUpdateTime = List.of("14:00","2:00");
+-    private static void autoUpdate() {
+-        autoUpdate = getBoolean("settings.misc.auto-update.enable", autoUpdate);
+-        autoUpdateTime = getList("settings.misc.auto-update.time", autoUpdateTime);
+-        if (autoUpdate) {
+-            LeavesLogger.LOGGER.warning("Auto-Update is not completely safe. Enabling it may cause data security problems!");
+-        }
+-    }
+-
+-    public static String serverLang = "en_us";
+-    private static final List<String> supportLang = List.of("en_us", "zh_cn");
+-    private static void serverLang() {
+-        serverLang = getString("settings.misc.server-lang", serverLang);
+-        if (!supportLang.contains(serverLang)) {
+-            serverLang = "en_us";
+-            LeavesLogger.LOGGER.severe("server-lang value error, reset to en_us");
+-        }
+-    }
+-
+-    public static String serverModName = "Leaves";
+-    private static void serverModName(){
+-        serverModName = getString("settings.misc.server-mod-name", serverModName);
+-    }
+-
+-    public static boolean tickCommand = false;
+-    private static void tickCommand() {
+-        tickCommand = getBoolean("settings.modify.tick-command", tickCommand);
+-    }
+-
+-    public static boolean bladerenLeavesProtocol = true;
+-    private static void bladerenLeavesProtocol() {
+-        bladerenLeavesProtocol = getBoolean("settings.protocol.bladeren.protocol", bladerenLeavesProtocol);
+-    }
+-
+-    public static void registerLeavesFeatures() {
+-    }
+-
+-    public static boolean hopperCounter = false;
+-    private static void hopperCounter() {
+-        hopperCounter = getBoolean("settings.modify.hopper-counter", hopperCounter);
+-    }
+-
+-    public static boolean lootWorldRandom = false;
+-    private static void lootWorldRandom() {
+-        lootWorldRandom = getBoolean("settings.modify.minecraft-old.loot-world-random", lootWorldRandom);
+-    }
+-
+-    public static double spiderJockeysDropGapples = -1.0;
+-    private static void spiderJockeysDropGapples() {
+-        spiderJockeysDropGapples = getDouble("settings.modify.spider-jockeys-drop-gapples", spiderJockeysDropGapples);
+-    }
+-
+-    public static boolean servuxProtocol = false;
+-    private static void servuxProtocol() {
+-        servuxProtocol = getBoolean("settings.protocol.servux-protocol", servuxProtocol);
+-    }
+-
+-    public static boolean forceVoidTrade = false;
+-    private static void forceVoidTrade() {
+-        forceVoidTrade = getBoolean("settings.modify.force-void-trade", forceVoidTrade);
+-    }
+-
+-    public static boolean cceUpdateSuppression = false;
+-    private static void cceUpdateSuppression() {
+-        cceUpdateSuppression = getBoolean("settings.modify.minecraft-old.cce-update-suppression", cceUpdateSuppression);
+-    }
+-
+-    public static boolean villagerInfiniteDiscounts = false;
+-    private static void villagerInfiniteDiscounts() {
+-        villagerInfiniteDiscounts = getBoolean("settings.modify.minecraft-old.villager-infinite-discounts", villagerInfiniteDiscounts);
+-        if (villagerInfiniteDiscounts) {
+-        }
+-    }
+-
+-    public static boolean disableMovedWronglyThreshold = false;
+-    private static void disableMovedWronglyThreshold() {
+-        disableMovedWronglyThreshold = getBoolean("settings.modify.disable-moved-wrongly-threshold", disableMovedWronglyThreshold);
+-    }
+-
+-    public static boolean armorStandCantKillByMobProjectile = false;
+-    private static void armorStandCantKillByMobProjectile() {
+-        armorStandCantKillByMobProjectile = getBoolean("settings.modify.minecraft-old.armor-stand-cant-kill-by-mob-projectile", armorStandCantKillByMobProjectile);
+-    }
+-
+     public static final class WorldConfig {
+ 
+         public final String worldName;

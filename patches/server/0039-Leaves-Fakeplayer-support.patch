@@ -1194,10 +1194,10 @@ index 0000000000000000000000000000000000000000..daaece30b2a3983f1cc9ee9a851e8f37
 +}
 diff --git a/src/main/java/top/leavesmc/leaves/bot/ServerBot.java b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8c41c8034135d575d9f62847ba5894e84b5b0d21
+index 0000000000000000000000000000000000000000..007fcf3212f3a7463d6bda5355fde5b2adfe296b
 --- /dev/null
 +++ b/src/main/java/top/leavesmc/leaves/bot/ServerBot.java
-@@ -0,0 +1,710 @@
+@@ -0,0 +1,718 @@
 +package top.leavesmc.leaves.bot;
 +
 +import com.google.common.collect.Lists;
@@ -1279,8 +1279,10 @@ index 0000000000000000000000000000000000000000..8c41c8034135d575d9f62847ba5894e8
 +import java.util.List;
 +import java.util.Map;
 +import java.util.UUID;
++import java.util.concurrent.CompletableFuture;
 +import java.util.concurrent.CopyOnWriteArrayList;
 +import java.util.function.Consumer;
++import java.util.function.Supplier;
 +
 +// TODO remake all
 +public class ServerBot extends ServerPlayer {
@@ -1327,45 +1329,53 @@ index 0000000000000000000000000000000000000000..8c41c8034135d575d9f62847ba5894e8
 +
 +        MinecraftServer server = MinecraftServer.getServer();
 +
-+        BotCreateEvent event = new BotCreateEvent(state.name, state.skinName, state.loc, ChatColor.YELLOW + state.name + " joined the game");
-+        server.server.getPluginManager().callEvent(event);
++        final Supplier<ServerBot> botWrapper = ()->{
++            BotCreateEvent event = new BotCreateEvent(state.name, state.skinName, state.loc, ChatColor.YELLOW + state.name + " joined the game");
++            server.server.getPluginManager().callEvent(event);
 +
-+        if (event.isCancelled()) {
-+            return null;
-+        }
-+
-+        Location location = event.getCreateLocation();
-+
-+        ServerLevel world = ((CraftWorld) location.getWorld()).getHandle();
-+        CustomGameProfile profile = new CustomGameProfile(BotUtil.getBotUUID(state), state.name, state.skin);
-+
-+        ServerBot bot = new ServerBot(server, world, profile);
-+
-+        bot.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND) {
-+            @Override
-+            public void send(@NotNull Packet<?> packet, @Nullable PacketSendListener packetsendlistener) {
++            if (event.isCancelled()) {
++                return null;
 +            }
-+        }, bot, CommonListenerCookie.createInitial(profile));
-+        bot.isRealPlayer = true;
-+        bot.createState = state;
 +
-+        if (event.getJoinMessage() != null) {
-+            Bukkit.broadcastMessage(event.getJoinMessage());
++            Location location = event.getCreateLocation();
++
++            ServerLevel world = ((CraftWorld) location.getWorld()).getHandle();
++            CustomGameProfile profile = new CustomGameProfile(BotUtil.getBotUUID(state), state.name, state.skin);
++
++            ServerBot bot = new ServerBot(server, world, profile);
++
++            bot.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND) {
++                @Override
++                public void send(@NotNull Packet<?> packet, @Nullable PacketSendListener packetsendlistener) {
++                }
++            }, bot, CommonListenerCookie.createInitial(profile));
++            bot.isRealPlayer = true;
++            bot.createState = state;
++
++            if (event.getJoinMessage() != null) {
++                Bukkit.broadcastMessage(event.getJoinMessage());
++            }
++
++            bot.teleportTo(location.getX(), location.getY(), location.getZ());
++            bot.setRot(location.getYaw(), location.getPitch());
++            bot.getBukkitEntity().setRotation(location.getYaw(), location.getPitch());
++            world.addFreshEntity(bot, CreatureSpawnEvent.SpawnReason.COMMAND);
++
++            bot.renderAll();
++            server.getPlayerList().addNewBot(bot);
++            bots.add(bot);
++
++            BotJoinEvent event1 = new BotJoinEvent(bot.getBukkitPlayer());
++            server.server.getPluginManager().callEvent(event1);
++
++            return bot;
++        };
++        
++        if (Bukkit.isOwnedByCurrentRegion(state.loc)){
++            return botWrapper.get();
 +        }
 +
-+        bot.teleportTo(location.getX(), location.getY(), location.getZ());
-+        bot.setRot(location.getYaw(), location.getPitch());
-+        bot.getBukkitEntity().setRotation(location.getYaw(), location.getPitch());
-+        world.addFreshEntity(bot, CreatureSpawnEvent.SpawnReason.COMMAND);
-+
-+        bot.renderAll();
-+        server.getPlayerList().addNewBot(bot);
-+        bots.add(bot);
-+
-+        BotJoinEvent event1 = new BotJoinEvent(bot.getBukkitPlayer());
-+        server.server.getPluginManager().callEvent(event1);
-+
-+        return bot;
++        return CompletableFuture.supplyAsync(botWrapper,task -> Bukkit.getRegionScheduler().execute(CraftScheduler.MINECRAFT,state.loc,task)).join();
 +    }
 +
 +    public static boolean isCreateLegal(@NotNull String name) {
@@ -1876,17 +1886,15 @@ index 0000000000000000000000000000000000000000..8c41c8034135d575d9f62847ba5894e8
 +        }
 +
 +        public void createAsync(Consumer<ServerBot> consumer) {
-+            Bukkit.getScheduler().runTaskAsynchronously(CraftScheduler.MINECRAFT, () -> {
++            Bukkit.getAsyncScheduler().runNow(CraftScheduler.MINECRAFT, (task) -> {
 +                if (skinName != null) {
 +                    this.skin = MojangAPI.getSkin(skinName);
 +                }
 +
-+                Bukkit.getScheduler().runTask(CraftScheduler.MINECRAFT, () -> {
-+                    ServerBot bot = createBot(this);
-+                    if (bot != null && consumer != null) {
-+                        consumer.accept(bot);
-+                    }
-+                });
++                ServerBot bot = createBot(this);
++                if (bot != null && consumer != null) {
++                    consumer.accept(bot);
++                }
 +            });
 +        }
 +
