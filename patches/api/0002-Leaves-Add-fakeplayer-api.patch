@@ -5,10 +5,10 @@ Subject: [PATCH] Leaves Add fakeplayer api
 
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 26b32a5935aaed9b1fe356af0208a778144aac87..166e67c1d61d2e8e409051d11da3707f953c8191 100644
+index b7e1c8bd8dd38e1a9e74925740b22dad61a75f49..5ee1ba3847599ac67b5cd8ca26e61b1231c45dcd 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
-@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Contract;
+@@ -58,6 +58,7 @@ import org.jetbrains.annotations.Contract;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  import io.papermc.paper.util.JarManifests; // Paper
@@ -16,7 +16,7 @@ index 26b32a5935aaed9b1fe356af0208a778144aac87..166e67c1d61d2e8e409051d11da3707f
  
  /**
   * Represents the Bukkit core, for version and Server singleton handling
-@@ -2760,6 +2761,17 @@ public final class Bukkit {
+@@ -2836,6 +2837,17 @@ public final class Bukkit {
      }
      // Folia end - region threading API
  
@@ -35,10 +35,10 @@ index 26b32a5935aaed9b1fe356af0208a778144aac87..166e67c1d61d2e8e409051d11da3707f
      public static Server.Spigot spigot() {
          return server.spigot();
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index ef03c69daab0ccfae64226d903d6e4447fc9cca9..c269e1d77e4b3ca63062cc0b0bc2b025f9e5ba38 100644
+index c570fe18ba5b29b2925c05e16219153d114d8f2a..15c0b6d3594b4cae071fc14dd0f6311527dbaf51 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -57,12 +57,22 @@ import org.bukkit.util.CachedServerIcon;
+@@ -58,12 +58,22 @@ import org.bukkit.util.CachedServerIcon;
  import org.jetbrains.annotations.Contract;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;

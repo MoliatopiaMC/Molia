@@ -63,11 +63,11 @@ index 36dd3b34e118c8c2c0205d3fa8971141ea72d2ff..844eec136c879d105bff1c707177386d
          entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
          enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index a1bdbd87e2ec2f73ddadea65c9fd0d20f41b9dae..9a0936d1cf49ad8e79463ec2ac94591dbcaa35cf 100644
+index 52c22dd05b8f50515ef0825da1417013c4344235..a348e9c9b37a0ba8bc1fa2c577880a3e0c7f5dc5 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -974,6 +974,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
-             timings.entityTick.startTiming(); // Spigot
+             this.timings.entityTick.startTiming(); // Spigot
              profiler.startTimer(ca.spottedleaf.leafprofiler.LProfilerRegistry.ENTITY_TICK); try { // Folia - profiler
              regionizedWorldData.forEachTickingEntity((entity) -> { // Folia - regionised ticking
 +                entity.activatedPriorityReset = false; //Pufferfish - DAB
@@ -75,10 +75,10 @@ index a1bdbd87e2ec2f73ddadea65c9fd0d20f41b9dae..9a0936d1cf49ad8e79463ec2ac94591d
                      if (false && this.shouldDiscardEntity(entity)) { // CraftBukkit - We prevent spawning in general, so this butchering is not needed
                          entity.discard();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 6fd879eb02f406d8c27d496dda5e7362664f8e01..b1c156d0cce5aa97a2ecb7845d2e13af0e1700d7 100644
+index 13de91283281467f54b775f3e3346d127a08f6f4..72971127c68422c7c013c990cd6a8d113197add0 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -439,6 +439,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -440,6 +440,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return this.originWorld;
      }
      // Paper end
@@ -103,7 +103,7 @@ index 3f3494c20cd15a721090f1b36293562a6b834b14..9d98c3a375bd2df956794303f3a83d3d
      private String descriptionId;
      @Nullable
 diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
-index 66b60b15478850ca0667f096b096d447218c2b2a..95d44a83f6af51e48dfac9c0a42796cfbb676748 100644
+index 26b79aedb84be4c21075c6b9f17ea305daf10cef..1cc61e02773d1074468692751a1f3c585a074d9f 100644
 --- a/src/main/java/net/minecraft/world/entity/Mob.java
 +++ b/src/main/java/net/minecraft/world/entity/Mob.java
 @@ -232,10 +232,10 @@ public abstract class Mob extends LivingEntity implements Targeting {
@@ -119,7 +119,7 @@ index 66b60b15478850ca0667f096b096d447218c2b2a..95d44a83f6af51e48dfac9c0a42796cf
              this.targetSelector.tick();
          }
      }
-@@ -933,16 +933,20 @@ public abstract class Mob extends LivingEntity implements Targeting {
+@@ -931,16 +931,20 @@ public abstract class Mob extends LivingEntity implements Targeting {
  
          if (i % 2 != 0 && this.tickCount > 1) {
              this.level().getProfiler().push("targetSelector");
@@ -185,7 +185,7 @@ index 5ad5f22e5aa26445e5eb229958e7bf356bdd460e..d241ca4d0295f9fce39c11197bd435cf
          this.level().getProfiler().pop();
          this.level().getProfiler().push("allayActivityUpdate");
 diff --git a/src/main/java/net/minecraft/world/entity/animal/axolotl/Axolotl.java b/src/main/java/net/minecraft/world/entity/animal/axolotl/Axolotl.java
-index aa850cfaa0534d57e83f37360724da2428a48a18..eb1e850f11ed1cd8d2f1f2eb1af55b7fe6352ed4 100644
+index d5b97d4316390028f54aa9bb9fa52b0b003e32a0..b4793b88688bd568a428aa520e880f0038de45a7 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/axolotl/Axolotl.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/axolotl/Axolotl.java
 @@ -280,9 +280,11 @@ public class Axolotl extends Animal implements LerpingModel, VariantHolder<Axolo
@@ -299,7 +299,7 @@ index b2bc3a832c310448046ccde37a04918aa6d63197..5e43912708f9074dee1bb351efa737a7
          this.level().getProfiler().pop();
          super.customServerAiStep();
 diff --git a/src/main/java/net/minecraft/world/entity/npc/Villager.java b/src/main/java/net/minecraft/world/entity/npc/Villager.java
-index a1bc0dc172fc88f87b4cd59a70c46331413d585f..36dcd5a3abc845570a5ee5bd07c008e91422bb3c 100644
+index 4e9ccc518f37755e86687653f7724240db754682..a94661deaa6e1288bb957dc5d7711c5d03b9e460 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/Villager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/Villager.java
 @@ -142,6 +142,8 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
@@ -333,7 +333,7 @@ index a1bc0dc172fc88f87b4cd59a70c46331413d585f..36dcd5a3abc845570a5ee5bd07c008e9
          if (this.assignProfessionWhenSpawned) {
              this.assignProfessionWhenSpawned = false;
 diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 00aa3dcf325fed667f6c4eb1bfce98c6b0f733d9..2ab6b77dfeaa65ed1fac59d3d55297cd14c91361 100644
+index fb9a4a356f7d18398a292425fb5be3542d8febc0..6afdc4fc46cce7925ab297d7ed75cdd7017c5f13 100644
 --- a/src/main/java/org/spigotmc/ActivationRange.java
 +++ b/src/main/java/org/spigotmc/ActivationRange.java
 @@ -39,6 +39,10 @@ import co.aikar.timings.MinecraftTimings;

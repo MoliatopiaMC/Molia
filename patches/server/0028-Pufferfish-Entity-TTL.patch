@@ -51,10 +51,10 @@ index 844eec136c879d105bff1c707177386d5812c117..a8e6813dcb7a537c07e0fda362e131ba
          entityWakeUpDurationRatioStandardDeviation = getDouble("optimizations.entity_wakeup_duration_ratio_standard_deviation",entityWakeUpDurationRatioStandardDeviation);
          enableSuffocationOptimization = getBoolean("optimizations.enable_suffocation_optimization",enableSuffocationOptimization);
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index b1c156d0cce5aa97a2ecb7845d2e13af0e1700d7..0be4cdc780f5272e4bfd54bb25c893a76b650080 100644
+index 72971127c68422c7c013c990cd6a8d113197add0..84aa50834c7265968a3615b9d717e1509823656d 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -795,6 +795,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -807,6 +807,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      }
  
      public void tick() {

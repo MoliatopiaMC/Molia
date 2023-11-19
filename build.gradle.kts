@@ -3,8 +3,8 @@ import io.papermc.paperweight.util.constants.*
 plugins {
     java
     `maven-publish`
-    id("com.github.johnrengelman.shadow") version "7.1.2" apply false
-    id("io.papermc.paperweight.patcher") version "1.5.8"
+    id("com.github.johnrengelman.shadow") version "8.1.1" apply false
+    id("io.papermc.paperweight.patcher") version "1.5.9"
 }
 
 val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"

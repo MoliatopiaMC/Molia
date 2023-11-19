@@ -5,10 +5,10 @@ Subject: [PATCH] Pufferfish Reduce entity allocations
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 8a92108c043802ecee4f1b6ed25a95d3f16cc374..6fd879eb02f406d8c27d496dda5e7362664f8e01 100644
+index 04de8ad85fac358db62751b4456dc2563278985a..13de91283281467f54b775f3e3346d127a08f6f4 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -420,6 +420,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -421,6 +421,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public boolean freezeLocked = false; // Paper - Freeze Tick Lock API
      public boolean collidingWithWorldBorder; // Paper
      public boolean fixedPose = false; // Paper

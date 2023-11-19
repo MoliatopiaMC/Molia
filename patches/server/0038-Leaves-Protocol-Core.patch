@@ -28,7 +28,7 @@ index 1e3117ccd51be58d988089207a3efdbff02fc374..5e62aa2833de0726a4d115dd13a0d41e
  
      private void tickPlayerSample() {
 diff --git a/src/main/java/net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket.java b/src/main/java/net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket.java
-index 975da2529d18391ed4ecc7359a2d7319129bd872..ae5590b015a2b018188bd7a45b44ec4d4af048a5 100644
+index af86f752c33a2990405fea058b7c41c437ba9d46..bada9fae1e7178162429e1f5a1608b9c4a680a6c 100644
 --- a/src/main/java/net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket.java
 +++ b/src/main/java/net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket.java
 @@ -20,7 +20,12 @@ public record ServerboundCustomPayloadPacket(CustomPacketPayload payload) implem
@@ -46,7 +46,7 @@ index 975da2529d18391ed4ecc7359a2d7319129bd872..ae5590b015a2b018188bd7a45b44ec4d
      }
  
 diff --git a/src/main/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index 578f5989037acbca98f22316630c15da689f1dc0..27415cf5d3a1ee53672e000a1d196b300e7778d8 100644
+index 2bb944cef9bc8c5e56023ef20921ef13509d4823..1658ddf4ff706b7df685ba4d6f890dd363bcbb45 100644
 --- a/src/main/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 @@ -116,6 +116,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
@@ -66,10 +66,10 @@ index 578f5989037acbca98f22316630c15da689f1dc0..27415cf5d3a1ee53672e000a1d196b30
              } catch (Exception ex) {
                  ServerGamePacketListenerImpl.LOGGER.error("Couldn\'t register custom payload", ex);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 9da89e8e9569666227081ebc6cb1f0348e1a183d..9e2888e1785539183e181b0fe7cf6a0432969f82 100644
+index 7edaa7558e40942f94c459e9b480ef640146ec6b..3f366ad035ada0ac8170d2925bbfe86b80bd84cb 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
-@@ -411,6 +411,8 @@ public abstract class PlayerList {
+@@ -435,6 +435,8 @@ public abstract class PlayerList {
              //return; // Folia - region threading - must still allow the player to connect, as we must add to chunk map before handling disconnect
          }
  
@@ -78,7 +78,7 @@ index 9da89e8e9569666227081ebc6cb1f0348e1a183d..9e2888e1785539183e181b0fe7cf6a04
          final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
  
          if (jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure
-@@ -667,6 +669,7 @@ public abstract class PlayerList {
+@@ -691,6 +693,7 @@ public abstract class PlayerList {
          return this.remove(entityplayer, net.kyori.adventure.text.Component.translatable("multiplayer.player.left", net.kyori.adventure.text.format.NamedTextColor.YELLOW, io.papermc.paper.configuration.GlobalConfiguration.get().messages.useDisplayNameInQuitMessage ? entityplayer.getBukkitEntity().displayName() : io.papermc.paper.adventure.PaperAdventure.asAdventure(entityplayer.getDisplayName())));
      }
      public net.kyori.adventure.text.Component remove(ServerPlayer entityplayer, net.kyori.adventure.text.Component leaveMessage) {
@@ -87,10 +87,10 @@ index 9da89e8e9569666227081ebc6cb1f0348e1a183d..9e2888e1785539183e181b0fe7cf6a04
          ServerLevel worldserver = entityplayer.serverLevel();
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 0241b503fe71d28061562e2388059fa6eb67c1ef..947aeb806138e16c023948d6b25941e5113ad303 100644
+index 2855b924589dc2fcc39bd3c75a48bc38c65c8b0d..0043e6065770c895d42b59a68625546966b855c0 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -476,6 +476,7 @@ public final class CraftServer implements Server {
+@@ -478,6 +478,7 @@ public final class CraftServer implements Server {
              MapPalette.setMapColorCache(new CraftMapColorCache(this.logger));
          }
          datapackManager = new io.papermc.paper.datapack.PaperDatapackManager(console.getPackRepository()); // Paper
@@ -98,7 +98,7 @@ index 0241b503fe71d28061562e2388059fa6eb67c1ef..947aeb806138e16c023948d6b25941e5
      }
  
      public boolean getCommandBlockOverride(String command) {
-@@ -1115,6 +1116,7 @@ public final class CraftServer implements Server {
+@@ -1117,6 +1118,7 @@ public final class CraftServer implements Server {
          top.leavesmc.leaves.LeavesConfig.registerCommands(); // Leaves - Server Command
          this.overrideAllCommandBlockCommands = this.commandsConfiguration.getStringList("command-block-overrides").contains("*");
          this.ignoreVanillaPermissions = this.commandsConfiguration.getBoolean("ignore-vanilla-permissions");

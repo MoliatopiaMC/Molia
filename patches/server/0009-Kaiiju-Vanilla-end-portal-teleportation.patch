@@ -5,7 +5,7 @@ Subject: [PATCH] Kaiiju Vanilla end portal teleportation
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 56625fd12c7438e90d5d91e3aac6c4d75cda7819..1b2b270fbb9dea4f56177eb946ddcea9b222be78 100644
+index 07a75fcfac39fa3a4cf8a98081f4b9679a9c8f0e..cdff37800da032cfb35d86ab34a7f449a9087fd5 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -24,6 +24,8 @@ import java.util.function.BiConsumer;
@@ -17,7 +17,7 @@ index 56625fd12c7438e90d5d91e3aac6c4d75cda7819..1b2b270fbb9dea4f56177eb946ddcea9
  import net.minecraft.BlockUtil;
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
-@@ -4096,12 +4098,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4087,12 +4089,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                          targetPos, 16, // load 16 blocks to be safe from block physics
                          ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor.Priority.HIGH,
                          (chunks) -> {
@@ -37,7 +37,7 @@ index 56625fd12c7438e90d5d91e3aac6c4d75cda7819..1b2b270fbb9dea4f56177eb946ddcea9
                              );
                          }
                      );
-@@ -4288,6 +4295,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4279,6 +4286,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          if (!this.canPortalAsync(takePassengers)) {
              return false;
          }
@@ -48,7 +48,7 @@ index 56625fd12c7438e90d5d91e3aac6c4d75cda7819..1b2b270fbb9dea4f56177eb946ddcea9
  
          Vec3 initialPosition = this.position();
          ChunkPos initialPositionChunk = new ChunkPos(
-@@ -4346,7 +4357,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4337,7 +4348,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
              // place
              passengerTree.root.placeInAsync(
                  originWorld, destination, Entity.TELEPORT_FLAG_LOAD_CHUNK | (takePassengers ? Entity.TELEPORT_FLAG_TELEPORT_PASSENGERS : 0L),

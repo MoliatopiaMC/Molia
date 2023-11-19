@@ -31,10 +31,10 @@ index 46954db7ecd35ac4018fdf476df7c8020d7ce6c8..044c51ebb058fc36074fd178929e3279
      public PlayerAreaMap() {
          super();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index eb73b2016d230a41e61e9faeb6c897b90371256f..41a20a2be68f984f160cff52851f53fdcd8f27d6 100644
+index 17518eb26831ea53373e37d575e5c574ecc9be34..4f314ac1b00d6ea3fe64c47a2e47d2fda37f5d7a 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -419,6 +419,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -420,6 +420,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      private UUID originWorld;
      public boolean freezeLocked = false; // Paper - Freeze Tick Lock API
      public boolean collidingWithWorldBorder; // Paper
@@ -42,7 +42,7 @@ index eb73b2016d230a41e61e9faeb6c897b90371256f..41a20a2be68f984f160cff52851f53fd
      public boolean fixedPose = false; // Paper
      // Pufferfish start
      public final BlockPos.MutableBlockPos cachedBlockPos = new BlockPos.MutableBlockPos(); // used where needed
-@@ -2477,6 +2478,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2489,6 +2490,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  nbt.putBoolean("Paper.FreezeLock", true);
              }
              // Paper end
@@ -50,7 +50,7 @@ index eb73b2016d230a41e61e9faeb6c897b90371256f..41a20a2be68f984f160cff52851f53fd
              return nbt;
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Saving entity NBT");
-@@ -2645,6 +2647,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2636,6 +2638,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                  freezeLocked = nbt.getBoolean("Paper.FreezeLock");
              }
              // Paper end
@@ -62,7 +62,7 @@ index eb73b2016d230a41e61e9faeb6c897b90371256f..41a20a2be68f984f160cff52851f53fd
  
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.forThrowable(throwable, "Loading entity NBT");
-@@ -5719,4 +5726,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -5710,4 +5717,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return ((net.minecraft.server.level.ServerChunkCache) level.getChunkSource()).isPositionTicking(this);
      }
      // Paper end

@@ -5,10 +5,10 @@ Subject: [PATCH] Gale Optimize sun burn tick
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65667afd66 100644
+index cdff37800da032cfb35d86ab34a7f449a9087fd5..b894b75b5359145db42466f8b6d21118cd487062 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -306,8 +306,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -307,8 +307,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public double xo;
      public double yo;
      public double zo;
@@ -19,7 +19,7 @@ index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65
      private ChunkPos chunkPosition;
      private Vec3 deltaMovement;
      private float yRot;
-@@ -315,6 +315,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -316,6 +316,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public float yRotO;
      public float xRotO;
      private AABB bb;
@@ -27,7 +27,7 @@ index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65
      public boolean onGround;
      public boolean horizontalCollision;
      public boolean verticalCollision;
-@@ -1062,6 +1063,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -1074,6 +1075,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      // Paper end - detailed watchdog information
  
      public void move(MoverType movementType, Vec3 movement) {
@@ -39,7 +39,7 @@ index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65
          // Paper start - detailed watchdog information
          io.papermc.paper.util.TickThread.ensureTickThread("Cannot move an entity off-main");
          synchronized (this.posLock) {
-@@ -2006,6 +2012,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -2018,6 +2024,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return this.level().hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level().getLightLevelDependentMagicValue(BlockPos.containing(this.getX(), this.getEyeY(), this.getZ())) : 0.0F;
      }
  
@@ -54,7 +54,7 @@ index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65
      public void absMoveTo(double x, double y, double z, float yaw, float pitch) {
          this.absMoveTo(x, y, z);
          this.setYRot(yaw % 360.0F);
-@@ -4834,6 +4848,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -4825,6 +4839,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      }
  
      public final void setBoundingBox(AABB boundingBox) {
@@ -67,10 +67,10 @@ index 1b2b270fbb9dea4f56177eb946ddcea9b222be78..26efc7a389c7a40a886ce7f595541f65
          double minX = boundingBox.minX,
                  minY = boundingBox.minY,
 diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
-index 8d6a2966ebf5ff5813575f5451cceaddace53b4c..66b60b15478850ca0667f096b096d447218c2b2a 100644
+index 4e9d510646abbc2d2b6f2d935f7416b6872eb234..26b79aedb84be4c21075c6b9f17ea305daf10cef 100644
 --- a/src/main/java/net/minecraft/world/entity/Mob.java
 +++ b/src/main/java/net/minecraft/world/entity/Mob.java
-@@ -1731,13 +1731,29 @@ public abstract class Mob extends LivingEntity implements Targeting {
+@@ -1729,13 +1729,29 @@ public abstract class Mob extends LivingEntity implements Targeting {
  
      }
  

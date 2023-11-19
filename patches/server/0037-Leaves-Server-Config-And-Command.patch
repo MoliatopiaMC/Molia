@@ -5,7 +5,7 @@ Subject: [PATCH] Leaves Server Config And Command
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index dfb6b497d8baf08fc272e305e65b4e44c998cf81..e1d8b04428be78758b8ee5d51c6c7af3d5e379cd 100644
+index 01b80859942ba91047632214de71c955d7d30689..7fafdecf8bfe808801dd1acd0eda8a1f4ae51042 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1203,6 +1203,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -15,9 +15,9 @@ index dfb6b497d8baf08fc272e305e65b4e44c998cf81..e1d8b04428be78758b8ee5d51c6c7af3
 +			top.leavesmc.leaves.LeavesConfig.createWorldSections = false; // Leaves - dont let plugin create worlds fill our config
              org.spigotmc.WatchdogThread.tick(); // Paper
              org.spigotmc.WatchdogThread.hasStarted = true; // Paper
-             Arrays.fill( recentTps, 20 );
+             Arrays.fill( this.recentTps, 20 );
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index 0f11ff033c4fefe40da7970feac851257cb80432..130871869517b163f60a742fa5cd01a5ea9213bf 100644
+index 948feb30ca53f3174d99cb97f9975f372b9782ca..be34d3d66b54122583d8a6dbb78621685ff2e27c 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -258,6 +258,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
@@ -32,7 +32,7 @@ index 0f11ff033c4fefe40da7970feac851257cb80432..130871869517b163f60a742fa5cd01a5
          this.initializeKeyPair();
          DedicatedServer.LOGGER.info("Starting Minecraft server on {}:{}", this.getLocalIp().isEmpty() ? "*" : this.getLocalIp(), this.getPort());
 diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
-index 0ff6764c747ee6258ab9d722b48c24f0ddb2afdf..b277aa2447af5eefcf8023af25cec4e9073562dc 100644
+index c58ca3dd28b9c113a26feb1a7f05bd78c0dbd678..9397febffe35a86fa408379e038b74bdf069e5ca 100644
 --- a/src/main/java/net/minecraft/world/level/Level.java
 +++ b/src/main/java/net/minecraft/world/level/Level.java
 @@ -230,9 +230,12 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
@@ -49,18 +49,18 @@ index 0ff6764c747ee6258ab9d722b48c24f0ddb2afdf..b277aa2447af5eefcf8023af25cec4e9
          this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index ec3fd742fbc79ed997f7abfb39d8053e9c0acb2e..0241b503fe71d28061562e2388059fa6eb67c1ef 100644
+index 63b3328b43b3556b886593dc30470f7fae743624..2855b924589dc2fcc39bd3c75a48bc38c65c8b0d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -1080,6 +1080,7 @@ public final class CraftServer implements Server {
+@@ -1082,6 +1082,7 @@ public final class CraftServer implements Server {
  
-         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+         org.spigotmc.SpigotConfig.init((File) this.console.options.valueOf("spigot-settings")); // Spigot
          this.console.paperConfigurations.reloadConfigs(this.console);
 +		top.leavesmc.leaves.LeavesConfig.init((File) console.options.valueOf("leaves-settings")); // Leaves - Server Config
          for (ServerLevel world : this.console.getAllLevels()) {
              // world.serverLevelData.setDifficulty(config.difficulty); // Paper - per level difficulty
              world.setSpawnSettings(world.serverLevelData.getDifficulty() != Difficulty.PEACEFUL && config.spawnMonsters, config.spawnAnimals); // Paper - per level difficulty (from MinecraftServer#setDifficulty(ServerLevel, Difficulty, boolean))
-@@ -1095,6 +1096,7 @@ public final class CraftServer implements Server {
+@@ -1097,6 +1098,7 @@ public final class CraftServer implements Server {
                  }
              }
              world.spigotConfig.init(); // Spigot
@@ -68,7 +68,7 @@ index ec3fd742fbc79ed997f7abfb39d8053e9c0acb2e..0241b503fe71d28061562e2388059fa6
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -1110,6 +1112,7 @@ public final class CraftServer implements Server {
+@@ -1112,6 +1114,7 @@ public final class CraftServer implements Server {
          this.reloadData();
          org.spigotmc.SpigotConfig.registerCommands(); // Spigot
          io.papermc.paper.command.PaperCommands.registerCommands(this.console); // Paper
@@ -76,7 +76,7 @@ index ec3fd742fbc79ed997f7abfb39d8053e9c0acb2e..0241b503fe71d28061562e2388059fa6
          this.overrideAllCommandBlockCommands = this.commandsConfiguration.getStringList("command-block-overrides").contains("*");
          this.ignoreVanillaPermissions = this.commandsConfiguration.getBoolean("ignore-vanilla-permissions");
  
-@@ -2956,6 +2959,14 @@ public final class CraftServer implements Server {
+@@ -3020,6 +3023,14 @@ public final class CraftServer implements Server {
          {
              return CraftServer.this.console.paperConfigurations.createLegacyObject(CraftServer.this.console);
          }
@@ -92,7 +92,7 @@ index ec3fd742fbc79ed997f7abfb39d8053e9c0acb2e..0241b503fe71d28061562e2388059fa6
          @Override
          public void restart() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index e4cacb17f56c618bef19e1165c07aac86af61150..14ce062a21da4de22d87dcaba3de3974ad810b83 100644
+index 2af0068ef338634d1f44532af5db66c2d0b3dd10..05dc044c6502db5298d1411e3356f8716d7ffc77 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -165,6 +165,14 @@ public class Main {

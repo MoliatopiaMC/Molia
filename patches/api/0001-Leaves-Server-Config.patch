@@ -5,10 +5,10 @@ Subject: [PATCH] Leaves Server Config
 
 
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index b6a8217b97842cd07af24fadb21e0e44226e5bb9..ef03c69daab0ccfae64226d903d6e4447fc9cca9 100644
+index 85b169c04f44431363d4e14d4857140f160ceace..c570fe18ba5b29b2925c05e16219153d114d8f2a 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -2120,6 +2120,14 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+@@ -2189,6 +2189,14 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
              throw new UnsupportedOperationException("Not supported yet.");
          }
          // Paper end
